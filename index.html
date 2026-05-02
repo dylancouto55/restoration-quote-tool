@@ -1,0 +1,1188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Get a Quote | Restoration Pressure Washing LLC</title>
+<style>
+  :root {
+    --bg: #0f1419;
+    --panel: #1a2028;
+    --panel-2: #232a35;
+    --border: #2d3744;
+    --accent: #4a9eff;
+    --accent-2: #6bb6ff;
+    --good: #4ade80;
+    --warn: #fbbf24;
+    --bad: #fca5a5;
+    --text: #e6edf3;
+    --muted: #8b96a5;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 16px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .container { max-width: 720px; margin: 0 auto; }
+
+  /* Embed modes */
+  body.embed { background: transparent; padding: 0; min-height: 0; }
+  body.embed header, body.embed footer { display: none; }
+  body.embed .container { max-width: 100%; }
+  body.embed-light {
+    background: transparent; padding: 0; min-height: 0; color: #1a2028;
+  }
+  body.embed-light header, body.embed-light footer { display: none; }
+  body.embed-light .container { max-width: 100%; }
+  body.embed-light .card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  }
+  body.embed-light .card h2 { color: #2563eb; }
+  body.embed-light .field label { color: #6b7280; }
+  body.embed-light .field .hint { color: #9ca3af; }
+  body.embed-light input, body.embed-light select, body.embed-light textarea {
+    background: #f9fafb; border-color: #e5e7eb; color: #1a2028;
+  }
+  body.embed-light .preset { background: #f9fafb; border-color: #e5e7eb; color: #1a2028; }
+  body.embed-light .service-card { background: #f9fafb; border-color: #e5e7eb; }
+  body.embed-light .service-card.selected { background: #eff6ff; border-color: var(--accent); }
+  body.embed-light .results {
+    background: linear-gradient(135deg, #f0f7ff 0%, #e6f0fa 100%);
+  }
+  body.embed-light .total { background: #ffffff; }
+  body.embed-light .info-box { background: rgba(74, 158, 255, 0.06); color: #6b7280; }
+  body.embed-light .info-box strong { color: #1a2028; }
+  body.embed-light .checkbox-row { color: #4b5563; }
+
+  header {
+    text-align: center;
+    margin-bottom: 24px;
+    padding: 24px 16px;
+    background: linear-gradient(135deg, var(--panel) 0%, var(--panel-2) 100%);
+    border-radius: 14px;
+    border: 1px solid var(--border);
+  }
+  header h1 { font-size: 26px; font-weight: 700; margin-bottom: 4px; letter-spacing: -0.5px; }
+  header .sub { color: var(--muted); font-size: 14px; }
+  header .accent-bar { width: 40px; height: 3px; background: var(--accent); margin: 14px auto 0; border-radius: 2px; }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px;
+    margin-bottom: 16px;
+  }
+  .card h2 {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--accent-2);
+    margin-bottom: 14px;
+    font-weight: 600;
+  }
+  .field { margin-bottom: 14px; }
+  .field:last-child { margin-bottom: 0; }
+  .field label {
+    display: block;
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+  .field label .req { color: var(--bad); }
+  .field .hint { font-size: 11px; color: var(--muted); margin-top: 4px; opacity: 0.8; line-height: 1.5; }
+
+  .input-wrap { position: relative; }
+  .input-wrap .prefix, .input-wrap .suffix {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    color: var(--muted); font-size: 15px; pointer-events: none;
+  }
+  .input-wrap .prefix { left: 14px; }
+  .input-wrap .suffix { right: 14px; }
+  .input-wrap.has-prefix input { padding-left: 28px; }
+  .input-wrap.has-suffix input { padding-right: 50px; }
+  input[type="number"], input[type="text"], input[type="tel"], input[type="email"], select, textarea {
+    width: 100%;
+    padding: 12px 14px;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    color: var(--text);
+    font-size: 16px;
+    font-family: inherit;
+    transition: border-color 0.15s, background 0.15s;
+    -webkit-appearance: none; appearance: none;
+  }
+  textarea { min-height: 80px; resize: vertical; }
+  input:focus, select:focus, textarea:focus {
+    outline: none; border-color: var(--accent); background: #28303d;
+  }
+  input.invalid { border-color: var(--bad); }
+  select {
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%238b96a5' d='M6 8L0 0h12z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px;
+  }
+  .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 480px) { .row-2 { grid-template-columns: 1fr; } }
+
+  /* Lookup row */
+  .lookup-row { display: flex; gap: 8px; }
+  .lookup-row input { flex: 1; min-width: 0; }
+  .lookup-btn {
+    padding: 12px 16px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 9px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+    white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .lookup-btn:active { transform: scale(0.97); }
+  .lookup-btn:hover:not(:disabled) { background: var(--accent-2); }
+  .lookup-btn:disabled { opacity: 0.6; cursor: wait; }
+
+  .lookup-status {
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    display: none;
+    line-height: 1.5;
+  }
+  .lookup-status.show { display: block; }
+  .lookup-status.loading { background: rgba(74, 158, 255, 0.1); color: var(--accent-2); border: 1px solid rgba(74, 158, 255, 0.3); }
+  .lookup-status.success { background: rgba(74, 222, 128, 0.1); color: var(--good); border: 1px solid rgba(74, 222, 128, 0.3); }
+  .lookup-status.error { background: rgba(252, 165, 165, 0.1); color: var(--bad); border: 1px solid rgba(252, 165, 165, 0.3); }
+
+  /* Service cards */
+  .service-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  @media (max-width: 480px) { .service-grid { grid-template-columns: 1fr; } }
+
+  .service-card {
+    padding: 14px;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    -webkit-tap-highlight-color: transparent;
+    position: relative;
+  }
+  .service-card:active { transform: scale(0.98); }
+  .service-card:hover { border-color: var(--accent); }
+  .service-card.selected {
+    background: rgba(74, 158, 255, 0.1);
+    border-color: var(--accent);
+  }
+  .service-card .check {
+    position: absolute;
+    top: 10px; right: 10px;
+    width: 20px; height: 20px;
+    border: 2px solid var(--border);
+    border-radius: 50%;
+    background: var(--panel);
+  }
+  .service-card.selected .check {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .service-card.selected .check::after {
+    content: ''; position: absolute;
+    left: 4px; top: 1px;
+    width: 5px; height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+  .service-card .icon { font-size: 22px; margin-bottom: 6px; }
+  .service-card .title { font-weight: 600; font-size: 14px; margin-bottom: 2px; }
+  .service-card .desc { font-size: 11px; color: var(--muted); line-height: 1.4; }
+
+  /* Service detail panels */
+  .service-detail {
+    margin-top: 14px;
+    padding: 14px;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    display: none;
+  }
+  .service-detail.show { display: block; }
+  .service-detail h3 {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--accent-2);
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+
+  .measure-btn {
+    padding: 10px 12px;
+    background: transparent;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .measure-btn:active { transform: scale(0.97); }
+  .measure-btn:hover { background: var(--accent); color: white; }
+  .measure-row { display: flex; gap: 8px; margin-top: 4px; }
+  .measure-row .measure-btn { flex: 1; }
+
+  /* Preset buttons */
+  .preset-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .preset {
+    flex: 1; min-width: 0;
+    padding: 9px 10px;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+    font-weight: 500;
+    text-align: center;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .preset:active { transform: scale(0.97); }
+  .preset:hover { border-color: var(--accent); }
+  .preset.active { background: var(--accent); border-color: var(--accent); color: white; }
+
+  /* Checkbox row for marketing consent */
+  .checkbox-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px;
+    background: var(--panel-2);
+    border-radius: 8px;
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
+    cursor: pointer;
+  }
+  .checkbox-row input[type="checkbox"] {
+    width: 18px; height: 18px;
+    margin-top: 1px;
+    flex-shrink: 0;
+    accent-color: var(--accent);
+  }
+
+  /* Results */
+  .results {
+    background: linear-gradient(135deg, #1a2535 0%, #0f1925 100%);
+    border: 1px solid var(--accent);
+  }
+  .results h2 { color: var(--accent); }
+  .quote-line {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    font-size: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .quote-line:last-child { border-bottom: none; }
+  .quote-line .label { color: var(--text); }
+  .quote-line .value { color: var(--muted); font-variant-numeric: tabular-nums; }
+
+  .total {
+    margin-top: 16px;
+    padding: 18px;
+    background: var(--panel-2);
+    border-radius: 10px;
+    border-left: 3px solid var(--accent);
+    text-align: center;
+  }
+  .total .label {
+    font-size: 12px; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+  .total .price-range {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--good);
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+  }
+  .total .disclaimer {
+    margin-top: 10px;
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  /* Submit button */
+  .submit-btn {
+    width: 100%;
+    padding: 16px;
+    background: var(--good);
+    color: #0a1f0e;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+    -webkit-tap-highlight-color: transparent;
+    margin-top: 8px;
+  }
+  .submit-btn:active { transform: scale(0.99); }
+  .submit-btn:hover:not(:disabled) { background: #6ee395; }
+  .submit-btn:disabled { opacity: 0.6; cursor: wait; }
+
+  /* Success state */
+  .success-state {
+    text-align: center;
+    padding: 30px 20px;
+    display: none;
+  }
+  .success-state.show { display: block; }
+  .success-state .check-circle {
+    width: 60px; height: 60px;
+    background: var(--good);
+    border-radius: 50%;
+    margin: 0 auto 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    color: white;
+  }
+  .success-state h2 { color: var(--good); margin-bottom: 8px; font-size: 22px; }
+  .success-state p { color: var(--muted); line-height: 1.6; margin-bottom: 8px; }
+  .success-state .quote-summary {
+    margin: 20px 0;
+    padding: 16px;
+    background: var(--panel-2);
+    border-radius: 10px;
+    text-align: left;
+  }
+
+  .info-box {
+    margin-top: 10px;
+    padding: 10px 12px;
+    background: rgba(74, 158, 255, 0.08);
+    border-left: 3px solid var(--accent);
+    border-radius: 6px;
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .info-box strong { color: var(--text); }
+
+  footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: 11px;
+    padding: 16px 0;
+    line-height: 1.7;
+  }
+  footer .biz { color: var(--text); font-weight: 600; }
+
+  .spinner {
+    display: inline-block;
+    width: 12px; height: 12px;
+    border: 2px solid rgba(74, 158, 255, 0.3);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin-right: 6px;
+    vertical-align: -2px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <h1>Get a Free Quote</h1>
+    <div class="sub">Restoration Pressure Washing LLC · Licensed & Insured</div>
+    <div class="accent-bar"></div>
+  </header>
+
+  <div id="formContainer">
+
+  <!-- Property Lookup -->
+  <div class="card">
+    <h2>Property Address</h2>
+    <div class="field">
+      <label for="address">Address <span class="req">*</span></label>
+      <div class="lookup-row">
+        <input type="text" id="address" placeholder="123 Main St, Warren, MI 48088" autocomplete="street-address" />
+        <button class="lookup-btn" id="lookupBtn">Look Up</button>
+      </div>
+      <div class="hint">We'll auto-fill property info to give you an accurate quote</div>
+      <div class="lookup-status" id="lookupStatus"></div>
+    </div>
+  </div>
+
+  <!-- Service Selection -->
+  <div class="card">
+    <h2>Select Services</h2>
+    <div class="service-grid" id="serviceGrid">
+      <!-- Service cards inserted by JS -->
+    </div>
+
+    <!-- Service detail panels -->
+    <div class="service-detail" id="detail-house_wash">
+      <h3>House Wash Details</h3>
+      <div class="row-2">
+        <div class="field">
+          <label for="house_sqft">Living Sq Ft</label>
+          <div class="input-wrap has-suffix">
+            <input type="number" id="house_sqft" value="2000" min="0" step="50" />
+            <span class="suffix">sq ft</span>
+          </div>
+        </div>
+        <div class="field">
+          <label for="house_stories">Stories</label>
+          <select id="house_stories">
+            <option value="1">1 Story</option>
+            <option value="1.5">1.5 Story</option>
+            <option value="2" selected>2 Story</option>
+            <option value="3">3 Story</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Wash Level</label>
+        <div class="preset-row" data-service="house">
+          <button type="button" class="preset" data-level="basic">Basic</button>
+          <button type="button" class="preset active" data-level="standard">Standard</button>
+          <button type="button" class="preset" data-level="premium">Premium</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="service-detail" id="detail-driveway">
+      <h3>Driveway / Concrete Details</h3>
+      <div class="field">
+        <label for="driveway_sqft">Driveway Square Footage</label>
+        <div class="input-wrap has-suffix">
+          <input type="number" id="driveway_sqft" value="600" min="0" step="50" />
+          <span class="suffix">sq ft</span>
+        </div>
+        <div class="hint">Don't know? Use the buttons below to measure</div>
+        <div class="measure-row">
+          <a class="measure-btn" id="measure_driveway_maps" target="_blank">📍 Google Maps</a>
+          <a class="measure-btn" id="measure_driveway_earth" target="_blank">🌍 Google Earth</a>
+        </div>
+      </div>
+      <div class="field">
+        <label>Surface Condition</label>
+        <div class="preset-row" data-service="driveway">
+          <button type="button" class="preset" data-level="light">Light Dirt</button>
+          <button type="button" class="preset active" data-level="standard">Moderate</button>
+          <button type="button" class="preset" data-level="heavy">Heavy Stains</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="service-detail" id="detail-roof">
+      <h3>Roof Wash Details</h3>
+      <div class="field">
+        <label for="roof_sqft">Roof Square Footage</label>
+        <div class="input-wrap has-suffix">
+          <input type="number" id="roof_sqft" value="1800" min="0" step="50" />
+          <span class="suffix">sq ft</span>
+        </div>
+        <div class="hint">Approximate roof footprint (similar to house sq ft for single story)</div>
+        <div class="measure-row">
+          <a class="measure-btn" id="measure_roof_maps" target="_blank">📍 Google Maps</a>
+          <a class="measure-btn" id="measure_roof_earth" target="_blank">🌍 Google Earth</a>
+        </div>
+      </div>
+      <div class="field">
+        <label>Algae / Black Streaks</label>
+        <div class="preset-row" data-service="roof">
+          <button type="button" class="preset" data-level="light">Light</button>
+          <button type="button" class="preset active" data-level="standard">Moderate</button>
+          <button type="button" class="preset" data-level="heavy">Heavy</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="service-detail" id="detail-gutters">
+      <h3>Gutter Details</h3>
+      <div class="field">
+        <label for="gutter_lnft">Linear Footage of Gutters</label>
+        <div class="input-wrap has-suffix">
+          <input type="number" id="gutter_lnft" value="120" min="0" step="10" />
+          <span class="suffix">ln ft</span>
+        </div>
+        <div class="hint">Measure the perimeter of your house at the roofline</div>
+        <div class="measure-row">
+          <a class="measure-btn" id="measure_gutter_maps" target="_blank">📍 Google Maps</a>
+          <a class="measure-btn" id="measure_gutter_earth" target="_blank">🌍 Google Earth</a>
+        </div>
+      </div>
+      <div class="field">
+        <label>Service Type</label>
+        <div class="preset-row" data-service="gutters">
+          <button type="button" class="preset active" data-level="cleaning">Cleaning Out</button>
+          <button type="button" class="preset" data-level="brightening">Exterior Brightening</button>
+          <button type="button" class="preset" data-level="both">Both</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="service-detail" id="detail-junk">
+      <h3>Junk Removal Details</h3>
+      <div class="field">
+        <label for="junk_volume">Estimated Volume</label>
+        <select id="junk_volume">
+          <option value="single">Single Item ($75-150)</option>
+          <option value="quarter" selected>1/4 Truck Load ($150-250)</option>
+          <option value="half">1/2 Truck Load ($250-400)</option>
+          <option value="threequarter">3/4 Truck Load ($400-550)</option>
+          <option value="full">Full Truck Load ($550-750)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="junk_description">What needs removed?</label>
+        <textarea id="junk_description" placeholder="Old furniture, appliances, yard debris, etc."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- Estimated Quote Display -->
+  <div class="card results" id="quoteCard" style="display: none;">
+    <h2>Your Estimate</h2>
+    <div id="quoteLines"></div>
+    <div class="total">
+      <div class="label">Total Estimate</div>
+      <div class="price-range" id="priceRange">$0 - $0</div>
+      <div class="disclaimer">
+        Final price determined after on-site inspection. Range accounts for property condition,
+        access, and additional treatment if needed.
+      </div>
+    </div>
+  </div>
+
+  <!-- Customer Info -->
+  <div class="card">
+    <h2>Your Contact Info</h2>
+    <div class="field">
+      <label for="customer_name">Full Name <span class="req">*</span></label>
+      <input type="text" id="customer_name" autocomplete="name" />
+    </div>
+    <div class="row-2">
+      <div class="field">
+        <label for="customer_phone">Phone <span class="req">*</span></label>
+        <input type="tel" id="customer_phone" autocomplete="tel" placeholder="(248) 555-0100" />
+      </div>
+      <div class="field">
+        <label for="customer_email">Email <span class="req">*</span></label>
+        <input type="email" id="customer_email" autocomplete="email" placeholder="you@email.com" />
+      </div>
+    </div>
+
+    <label class="checkbox-row" for="marketing_consent">
+      <input type="checkbox" id="marketing_consent" />
+      <span>
+        I agree to receive emails and text messages from Restoration Pressure Washing LLC
+        about my quote, services, and special offers. Standard message and data rates may apply.
+        Reply STOP to opt out at any time.
+      </span>
+    </label>
+
+    <button class="submit-btn" id="submitBtn" style="margin-top: 16px;">Submit Quote Request</button>
+    <div class="hint" style="text-align: center; margin-top: 8px;">
+      We'll review your request and contact you within 24 hours
+    </div>
+  </div>
+
+  </div><!-- end formContainer -->
+
+  <!-- Success state -->
+  <div class="card success-state" id="successState">
+    <div class="check-circle">✓</div>
+    <h2>Quote Request Submitted</h2>
+    <p>Thanks for your interest! We've received your request and will contact you within 24 hours with a confirmed quote.</p>
+    <div class="quote-summary" id="successSummary"></div>
+    <p style="margin-top: 20px;">
+      Need to reach us sooner? Call <strong style="color: var(--text);">248-602-3934</strong>
+    </p>
+  </div>
+
+  <footer>
+    <div class="biz">Restoration Pressure Washing LLC</div>
+    <div>248-602-3934 · Licensed &amp; Insured</div>
+  </footer>
+</div>
+
+<script>
+  // ===== Embed Mode =====
+  (function() {
+    const params = new URLSearchParams(window.location.search);
+    const embedMode = params.get('embed');
+    if (embedMode === '1' || embedMode === 'dark') document.body.classList.add('embed');
+    else if (embedMode === 'light') document.body.classList.add('embed-light');
+
+    if (embedMode) {
+      function postHeight() {
+        window.parent.postMessage({ type: 'restoration-calculator-height', height: document.body.scrollHeight }, '*');
+      }
+      window.addEventListener('load', postHeight);
+      const observer = new MutationObserver(postHeight);
+      observer.observe(document.body, { childList: true, subtree: true, attributes: true });
+      document.addEventListener('input', () => setTimeout(postHeight, 50));
+      document.addEventListener('click', () => setTimeout(postHeight, 50));
+    }
+  })();
+
+  const $ = (id) => document.getElementById(id);
+  const fmt = (n) => '$' + Math.round(n).toLocaleString('en-US');
+
+  // ===== Config (loaded from /api/settings) =====
+  let CONFIG = {
+    business: { name: 'Restoration Pressure Washing LLC', phone: '248-602-3934' },
+    behavior: {
+      show_instant_quote: true,
+      show_price_range: true,
+      price_range_spread_low: 0.10,
+      price_range_spread_high: 0.15,
+      require_marketing_consent: false,
+      bundle_discount_percent: 10,
+      bundle_discount_threshold: 3
+    },
+    services: {
+      house_wash: { enabled: true, min_price: 275, rates: { basic: 0.10, standard: 0.18, premium: 0.28 } },
+      driveway:   { enabled: true, min_price: 150, rates: { light: 0.18, standard: 0.25, heavy: 0.35 } },
+      roof:       { enabled: true, min_price: 350, rates: { light: 0.30, standard: 0.40, heavy: 0.55 } },
+      gutters:    { enabled: true, min_price: 150, rates: { cleaning: 1.75, brightening: 2.50, both: 3.75 } },
+      junk:       { enabled: true, tiers: {
+        single:       { low: 75,  high: 150, label: 'Single Item' },
+        quarter:      { low: 150, high: 250, label: '1/4 Truck' },
+        half:         { low: 250, high: 400, label: '1/2 Truck' },
+        threequarter: { low: 400, high: 550, label: '3/4 Truck' },
+        full:         { low: 550, high: 750, label: 'Full Truck' }
+      }}
+    }
+  };
+
+  async function loadConfig() {
+    try {
+      const response = await fetch('/api/settings');
+      if (!response.ok) return; // fall back to defaults
+      const data = await response.json();
+      if (data.config && data.config.services) {
+        // Merge fetched config with defaults
+        CONFIG = { ...CONFIG, ...data.config };
+      }
+    } catch (err) {
+      console.warn('Could not load settings, using defaults:', err);
+    }
+  }
+
+  // ===== Service Definitions =====
+  const services = [
+    { id: 'house_wash', icon: '🏠', title: 'House Wash', desc: 'Soft wash siding, soffits, and trim' },
+    { id: 'driveway',   icon: '🛣️', title: 'Driveway',   desc: 'Concrete, pavers, and walkways' },
+    { id: 'roof',       icon: '🏚️', title: 'Roof Wash',  desc: 'Remove black streaks and algae' },
+    { id: 'gutters',    icon: '🪣', title: 'Gutters',    desc: 'Clean out and exterior brightening' },
+    { id: 'junk',       icon: '🗑️', title: 'Junk Removal', desc: 'Hauling and disposal' }
+  ];
+
+  const selectedServices = new Set();
+  const serviceLevels = {
+    house: 'standard',
+    driveway: 'standard',
+    roof: 'standard',
+    gutters: 'cleaning'
+  };
+
+  // ===== Pricing Logic =====
+  function priceHouse(sqft, stories, level) {
+    const footprint = sqft / stories;
+    const sideLen = Math.sqrt(footprint);
+    const perimeter = sideLen * 4;
+    const wallHeight = stories * 9 + 2;
+    const exterior = Math.round((perimeter * wallHeight * 1.15) / 50) * 50;
+
+    const rate = CONFIG.services.house_wash?.rates?.[level] || 0.18;
+    const minPrice = CONFIG.services.house_wash?.min_price || 275;
+    const base = Math.max(exterior * rate, minPrice);
+
+    return {
+      low: Math.round(base * (1 - CONFIG.behavior.price_range_spread_low)),
+      high: Math.round(base * (1 + CONFIG.behavior.price_range_spread_high)),
+      label: 'House Wash',
+      details: `${exterior.toLocaleString()} sq ft exterior, ${level}`
+    };
+  }
+
+  function priceDriveway(sqft, level) {
+    const rate = CONFIG.services.driveway?.rates?.[level] || 0.25;
+    const minPrice = CONFIG.services.driveway?.min_price || 150;
+    const base = Math.max(sqft * rate, minPrice);
+    return {
+      low: Math.round(base * (1 - CONFIG.behavior.price_range_spread_low)),
+      high: Math.round(base * (1 + CONFIG.behavior.price_range_spread_high)),
+      label: 'Driveway',
+      details: `${sqft.toLocaleString()} sq ft, ${level} cleaning`
+    };
+  }
+
+  function priceRoof(sqft, level) {
+    const rate = CONFIG.services.roof?.rates?.[level] || 0.40;
+    const minPrice = CONFIG.services.roof?.min_price || 350;
+    const base = Math.max(sqft * rate, minPrice);
+    return {
+      low: Math.round(base * (1 - CONFIG.behavior.price_range_spread_low)),
+      high: Math.round(base * (1 + CONFIG.behavior.price_range_spread_high)),
+      label: 'Roof Wash',
+      details: `${sqft.toLocaleString()} sq ft, ${level} algae`
+    };
+  }
+
+  function priceGutters(lnft, type) {
+    const rate = CONFIG.services.gutters?.rates?.[type] || 1.75;
+    const minPrice = CONFIG.services.gutters?.min_price || 150;
+    const base = Math.max(lnft * rate, minPrice);
+    return {
+      low: Math.round(base * (1 - CONFIG.behavior.price_range_spread_low)),
+      high: Math.round(base * (1 + CONFIG.behavior.price_range_spread_high)),
+      label: 'Gutters',
+      details: `${lnft} ln ft, ${type}`
+    };
+  }
+
+  function priceJunk(volume) {
+    const tiers = CONFIG.services.junk?.tiers || {};
+    const r = tiers[volume] || tiers.quarter || { low: 150, high: 250, label: '1/4 Truck' };
+    return { low: r.low, high: r.high, label: 'Junk Removal', details: r.label };
+  }
+
+  // ===== Build Service Cards =====
+  function buildServiceGrid() {
+    const grid = $('serviceGrid');
+    grid.innerHTML = '';
+    services.forEach(s => {
+      // Skip services disabled in settings
+      if (CONFIG.services[s.id] && CONFIG.services[s.id].enabled === false) return;
+
+      const card = document.createElement('div');
+      card.className = 'service-card';
+      card.dataset.service = s.id;
+      card.innerHTML = `
+        <div class="check"></div>
+        <div class="icon">${s.icon}</div>
+        <div class="title">${s.title}</div>
+        <div class="desc">${s.desc}</div>
+      `;
+      card.addEventListener('click', () => toggleService(s.id));
+      grid.appendChild(card);
+    });
+  }
+
+  function toggleService(id) {
+    if (selectedServices.has(id)) {
+      selectedServices.delete(id);
+    } else {
+      selectedServices.add(id);
+    }
+    document.querySelectorAll('.service-card').forEach(c => {
+      c.classList.toggle('selected', selectedServices.has(c.dataset.service));
+    });
+    document.querySelectorAll('.service-detail').forEach(d => {
+      const id = d.id.replace('detail-', '');
+      d.classList.toggle('show', selectedServices.has(id));
+    });
+    updateQuote();
+  }
+
+  // ===== Wash Level Buttons =====
+  document.querySelectorAll('.preset-row').forEach(row => {
+    const service = row.dataset.service;
+    row.querySelectorAll('.preset').forEach(btn => {
+      btn.addEventListener('click', () => {
+        row.querySelectorAll('.preset').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        serviceLevels[service] = btn.dataset.level;
+        updateQuote();
+      });
+    });
+  });
+
+  // ===== Update Quote =====
+  function updateQuote() {
+    const lines = [];
+    let totalLow = 0, totalHigh = 0;
+    const servicesData = [];
+
+    if (selectedServices.has('house_wash')) {
+      const sqft = +$('house_sqft').value || 2000;
+      const stories = +$('house_stories').value || 2;
+      const p = priceHouse(sqft, stories, serviceLevels.house);
+      lines.push(p);
+      totalLow += p.low;
+      totalHigh += p.high;
+      servicesData.push({
+        type: 'house_wash',
+        name: p.label,
+        details: p.details,
+        sqft: sqft,
+        stories: stories,
+        level: serviceLevels.house,
+        price_low: p.low,
+        price_high: p.high
+      });
+    }
+
+    if (selectedServices.has('driveway')) {
+      const sqft = +$('driveway_sqft').value || 600;
+      const p = priceDriveway(sqft, serviceLevels.driveway);
+      lines.push(p);
+      totalLow += p.low;
+      totalHigh += p.high;
+      servicesData.push({
+        type: 'driveway', name: p.label, details: p.details,
+        sqft: sqft, level: serviceLevels.driveway,
+        price_low: p.low, price_high: p.high
+      });
+    }
+
+    if (selectedServices.has('roof')) {
+      const sqft = +$('roof_sqft').value || 1800;
+      const p = priceRoof(sqft, serviceLevels.roof);
+      lines.push(p);
+      totalLow += p.low;
+      totalHigh += p.high;
+      servicesData.push({
+        type: 'roof', name: p.label, details: p.details,
+        sqft: sqft, level: serviceLevels.roof,
+        price_low: p.low, price_high: p.high
+      });
+    }
+
+    if (selectedServices.has('gutters')) {
+      const lnft = +$('gutter_lnft').value || 120;
+      const p = priceGutters(lnft, serviceLevels.gutters);
+      lines.push(p);
+      totalLow += p.low;
+      totalHigh += p.high;
+      servicesData.push({
+        type: 'gutters', name: p.label, details: p.details,
+        lnft: lnft, level: serviceLevels.gutters,
+        price_low: p.low, price_high: p.high
+      });
+    }
+
+    if (selectedServices.has('junk')) {
+      const vol = $('junk_volume').value;
+      const desc = $('junk_description').value;
+      const p = priceJunk(vol);
+      lines.push(p);
+      totalLow += p.low;
+      totalHigh += p.high;
+      servicesData.push({
+        type: 'junk', name: p.label, details: p.details,
+        volume: vol, description: desc,
+        price_low: p.low, price_high: p.high
+      });
+    }
+
+    // Multi-service discount based on config
+    const discountPct = CONFIG.behavior.bundle_discount_percent || 0;
+    const threshold = CONFIG.behavior.bundle_discount_threshold || 3;
+    if (discountPct > 0 && selectedServices.size >= threshold) {
+      const discount = Math.round(totalHigh * (discountPct / 100));
+      const discountLow = Math.round(totalLow * (discountPct / 100));
+      lines.push({
+        label: `Bundle Discount (${threshold}+ services)`,
+        details: `${discountPct}% off total`,
+        low: -discountLow,
+        high: -discount
+      });
+      totalLow -= discountLow;
+      totalHigh -= discount;
+    }
+
+    // Render
+    if (lines.length === 0) {
+      $('quoteCard').style.display = 'none';
+      return;
+    }
+
+    // Hide quote card if instant quote is disabled in settings
+    if (!CONFIG.behavior.show_instant_quote) {
+      $('quoteCard').style.display = 'none';
+      window._quoteData = {
+        services: servicesData,
+        price_low: totalLow,
+        price_high: totalHigh
+      };
+      return;
+    }
+
+    $('quoteCard').style.display = 'block';
+    const html = lines.map(l => `
+      <div class="quote-line">
+        <div>
+          <div class="label">${l.label}</div>
+          <div class="value" style="font-size: 11px; opacity: 0.7;">${l.details}</div>
+        </div>
+        <div class="value">${fmt(l.low)} - ${fmt(l.high)}</div>
+      </div>
+    `).join('');
+    $('quoteLines').innerHTML = html;
+
+    // Show as range or single price based on settings
+    if (CONFIG.behavior.show_price_range) {
+      $('priceRange').textContent = `${fmt(totalLow)} - ${fmt(totalHigh)}`;
+    } else {
+      const mid = Math.round((totalLow + totalHigh) / 2);
+      $('priceRange').textContent = fmt(mid);
+    }
+
+    // Store for submission
+    window._quoteData = {
+      services: servicesData,
+      price_low: totalLow,
+      price_high: totalHigh
+    };
+  }
+
+  // Listen to all input changes
+  ['house_sqft', 'house_stories', 'driveway_sqft', 'roof_sqft', 'gutter_lnft', 'junk_volume', 'junk_description']
+    .forEach(id => {
+      $(id).addEventListener('input', updateQuote);
+      $(id).addEventListener('change', updateQuote);
+    });
+
+  // ===== Property Lookup =====
+  async function lookupAddress() {
+    const address = $('address').value.trim();
+    const status = $('lookupStatus');
+    const btn = $('lookupBtn');
+
+    if (!address || address.length < 8) {
+      status.className = 'lookup-status show error';
+      status.innerHTML = 'Please enter a full address with street, city, and state.';
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Looking up...';
+    status.className = 'lookup-status show loading';
+    status.innerHTML = '<span class="spinner"></span>Looking up property records...';
+
+    // Update measurement buttons with this address
+    updateMeasurementLinks(address);
+
+    try {
+      const response = await fetch(`/api/lookup?address=${encodeURIComponent(address)}`);
+      const data = await response.json();
+
+      if (data.found && data.sqft) {
+        $('house_sqft').value = data.sqft;
+        if (data.stories) {
+          const valid = [1, 1.5, 2, 3];
+          const closest = valid.reduce((p, c) => Math.abs(c - data.stories) < Math.abs(p - data.stories) ? c : p);
+          $('house_stories').value = closest;
+        }
+        // Estimate roof sqft as ~1.1x footprint
+        const footprint = data.sqft / (data.stories || 2);
+        $('roof_sqft').value = Math.round(footprint * 1.1 / 50) * 50;
+        // Estimate gutter linear feet as perimeter
+        const sideLen = Math.sqrt(footprint);
+        $('gutter_lnft').value = Math.round(sideLen * 4);
+
+        window._propertyData = data;
+        updateQuote();
+
+        status.className = 'lookup-status show success';
+        let msg = `<strong>✓ ${data.sqft.toLocaleString()} sq ft</strong>`;
+        if (data.stories) msg += `, ${data.stories} story`;
+        if (data.year_built) msg += `, built ${data.year_built}`;
+        msg += `<br/><span style="opacity:0.75">Auto-filled from public records. Adjust below if needed.</span>`;
+        status.innerHTML = msg;
+      } else {
+        status.className = 'lookup-status show error';
+        status.innerHTML = data.error || 'No property data found. Enter details manually below.';
+      }
+    } catch (err) {
+      status.className = 'lookup-status show error';
+      status.innerHTML = 'Connection error. Enter details manually below.';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Look Up';
+    }
+  }
+
+  // Update Google Maps / Earth measurement buttons
+  function updateMeasurementLinks(address) {
+    const encoded = encodeURIComponent(address);
+    const mapsUrl = `https://www.google.com/maps/place/${encoded}`;
+    const earthUrl = `https://earth.google.com/web/search/${encoded}`;
+    ['driveway', 'roof', 'gutter'].forEach(svc => {
+      const m = $(`measure_${svc}_maps`);
+      const e = $(`measure_${svc}_earth`);
+      if (m) m.href = mapsUrl;
+      if (e) e.href = earthUrl;
+    });
+  }
+
+  $('lookupBtn').addEventListener('click', lookupAddress);
+  $('address').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); lookupAddress(); }
+  });
+  $('address').addEventListener('input', () => updateMeasurementLinks($('address').value.trim()));
+
+  // ===== Form Submission =====
+  function validate() {
+    const errors = [];
+    const fields = [
+      ['address', 'Property address'],
+      ['customer_name', 'Your name'],
+      ['customer_phone', 'Phone'],
+      ['customer_email', 'Email']
+    ];
+
+    document.querySelectorAll('input').forEach(i => i.classList.remove('invalid'));
+
+    fields.forEach(([id, name]) => {
+      const v = $(id).value.trim();
+      if (!v) {
+        errors.push(`${name} is required`);
+        $(id).classList.add('invalid');
+      }
+    });
+
+    const email = $('customer_email').value.trim();
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      errors.push('Email is not valid');
+      $('customer_email').classList.add('invalid');
+    }
+
+    if (selectedServices.size === 0) {
+      errors.push('Please select at least one service');
+    }
+
+    if (CONFIG.behavior.require_marketing_consent && !$('marketing_consent').checked) {
+      errors.push('Please agree to receive communications to proceed');
+    }
+
+    return errors;
+  }
+
+  $('submitBtn').addEventListener('click', async () => {
+    const errors = validate();
+    if (errors.length) {
+      alert(errors.join('\n'));
+      return;
+    }
+
+    const btn = $('submitBtn');
+    btn.disabled = true;
+    btn.textContent = 'Submitting...';
+
+    const payload = {
+      customer_name: $('customer_name').value.trim(),
+      customer_phone: $('customer_phone').value.trim(),
+      customer_email: $('customer_email').value.trim(),
+      customer_address: $('address').value.trim(),
+      marketing_consent: $('marketing_consent').checked,
+      living_sqft: window._propertyData?.sqft || +$('house_sqft').value || null,
+      stories: window._propertyData?.stories || +$('house_stories').value || null,
+      bedrooms: window._propertyData?.bedrooms || null,
+      bathrooms: window._propertyData?.bathrooms || null,
+      year_built: window._propertyData?.year_built || null,
+      property_data_source: window._propertyData?.source || null,
+      services: window._quoteData?.services || [],
+      price_low: window._quoteData?.price_low || 0,
+      price_high: window._quoteData?.price_high || 0
+    };
+
+    try {
+      const response = await fetch('/api/submit-quote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Submission failed');
+
+      // Show success
+      const summary = `
+        <div style="font-size: 13px; color: var(--muted); margin-bottom: 8px;">
+          <strong style="color: var(--text);">Services:</strong>
+        </div>
+        <ul style="margin-left: 20px; font-size: 13px; color: var(--text);">
+          ${payload.services.map(s => `<li>${s.name} - ${fmt(s.price_low)} to ${fmt(s.price_high)}</li>`).join('')}
+        </ul>
+        <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); text-align: center;">
+          <div style="font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px;">Estimated Total</div>
+          <div style="font-size: 24px; font-weight: 700; color: var(--good);">${fmt(payload.price_low)} - ${fmt(payload.price_high)}</div>
+        </div>
+      `;
+      $('successSummary').innerHTML = summary;
+      $('formContainer').style.display = 'none';
+      $('successState').classList.add('show');
+      window.scrollTo(0, 0);
+
+    } catch (err) {
+      alert('Error submitting quote: ' + err.message + '\n\nPlease call 248-602-3934 for assistance.');
+      btn.disabled = false;
+      btn.textContent = 'Submit Quote Request';
+    }
+  });
+
+  // ===== Init =====
+  async function init() {
+    await loadConfig();
+
+    // Update business info if loaded
+    if (CONFIG.business?.name) {
+      document.querySelectorAll('.biz').forEach(el => el.textContent = CONFIG.business.name);
+    }
+    if (CONFIG.business?.phone) {
+      // Update any phone displays
+      document.querySelectorAll('footer').forEach(el => {
+        const phoneSpan = el.querySelector('div:not(.biz)');
+        if (phoneSpan) phoneSpan.innerHTML = `${CONFIG.business.phone} · Licensed &amp; Insured`;
+      });
+    }
+
+    buildServiceGrid();
+    // Pre-select house wash by default if enabled
+    if (CONFIG.services.house_wash?.enabled !== false) {
+      toggleService('house_wash');
+    }
+  }
+  init();
+</script>
+</body>
+</html>

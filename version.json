@@ -1,0 +1,19 @@
+{
+  "version": "1.0.0",
+  "release_date": "2026-05-01",
+  "changelog": [
+    {
+      "version": "1.0.0",
+      "date": "2026-05-01",
+      "changes": [
+        "Initial release",
+        "Multi-service quote calculator (house wash, driveway, roof, gutters, junk removal)",
+        "RentCast property lookup integration",
+        "Email notifications via Resend",
+        "Admin dashboard with 5-stage pipeline",
+        "Comprehensive settings page for pricing, behavior, and business info",
+        "Embed support for Hostinger website"
+      ]
+    }
+  ]
+}

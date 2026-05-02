@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "name": "restoration-quote-tool",
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/admin",
+      "destination": "/admin.html"
+    }
+  ]
+}

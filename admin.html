@@ -1,0 +1,1585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Admin Dashboard | Restoration Pressure Washing LLC</title>
+<style>
+  :root {
+    --bg: #0f1419;
+    --panel: #1a2028;
+    --panel-2: #232a35;
+    --border: #2d3744;
+    --accent: #4a9eff;
+    --accent-2: #6bb6ff;
+    --good: #4ade80;
+    --warn: #fbbf24;
+    --bad: #fca5a5;
+    --text: #e6edf3;
+    --muted: #8b96a5;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Login */
+  .login-screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .login-card {
+    width: 100%;
+    max-width: 400px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 32px 24px;
+  }
+  .login-card h1 {
+    font-size: 22px;
+    margin-bottom: 4px;
+    text-align: center;
+  }
+  .login-card .subtitle {
+    color: var(--muted);
+    font-size: 13px;
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  .login-card .accent-bar {
+    width: 40px; height: 3px;
+    background: var(--accent);
+    margin: 12px auto 24px;
+    border-radius: 2px;
+  }
+
+  /* Dashboard */
+  .dashboard { display: none; }
+  .dashboard.active { display: block; }
+
+  .topbar {
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .topbar h1 { font-size: 16px; font-weight: 700; }
+  .topbar h1 .accent { color: var(--accent); }
+  .logout-btn {
+    padding: 6px 12px;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .logout-btn:hover { border-color: var(--accent); color: var(--text); }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 16px;
+  }
+
+  /* Stats */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  @media (max-width: 720px) {
+    .stats { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (max-width: 480px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+  }
+  .stat {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .stat:hover { border-color: var(--accent); }
+  .stat.active { border-color: var(--accent); background: rgba(74, 158, 255, 0.05); }
+  .stat .count {
+    font-size: 22px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .stat .count.pending { color: var(--warn); }
+  .stat .count.quoted { color: var(--accent); }
+  .stat .count.won { color: var(--good); }
+  .stat .count.lost { color: var(--bad); }
+  .stat .count.completed { color: #c084fc; }
+  .stat .label {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 4px;
+  }
+
+  /* Quote List */
+  .quote-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .quote-item {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .quote-item:hover { border-color: var(--accent); }
+  .quote-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 6px;
+    gap: 10px;
+  }
+  .quote-header .name { font-weight: 600; font-size: 15px; }
+  .quote-header .price {
+    font-weight: 700;
+    color: var(--good);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  .quote-meta {
+    color: var(--muted);
+    font-size: 12px;
+    margin-bottom: 8px;
+    line-height: 1.5;
+  }
+  .quote-services {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+  }
+  .service-tag {
+    padding: 3px 8px;
+    background: var(--panel-2);
+    border-radius: 99px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .status-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 99px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .status-badge.pending { background: rgba(251, 191, 36, 0.15); color: var(--warn); }
+  .status-badge.quoted { background: rgba(74, 158, 255, 0.15); color: var(--accent-2); }
+  .status-badge.won { background: rgba(74, 222, 128, 0.15); color: var(--good); }
+  .status-badge.lost { background: rgba(252, 165, 165, 0.15); color: var(--bad); }
+  .status-badge.completed { background: rgba(192, 132, 252, 0.15); color: #c084fc; }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+  }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 100;
+    padding: 16px;
+    overflow-y: auto;
+  }
+  .modal-overlay.show { display: flex; align-items: flex-start; justify-content: center; }
+  .modal {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    width: 100%;
+    max-width: 600px;
+    margin: 20px auto;
+  }
+  .modal-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .modal-header h2 { font-size: 18px; }
+  .close-btn {
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+  }
+  .modal-body { padding: 20px; }
+  .modal-section { margin-bottom: 20px; }
+  .modal-section h3 {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--accent-2);
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+    gap: 12px;
+  }
+  .info-row:last-child { border-bottom: none; }
+  .info-row .label { color: var(--muted); flex-shrink: 0; }
+  .info-row .value { text-align: right; word-break: break-word; }
+  .info-row .value a { color: var(--accent); text-decoration: none; }
+
+  .action-btns {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .action-btn {
+    padding: 12px;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    transition: all 0.15s;
+    font-family: inherit;
+    display: block;
+  }
+  .action-btn:hover { border-color: var(--accent); }
+  .action-btn.call { color: var(--good); border-color: var(--good); }
+  .action-btn.email { color: var(--accent); border-color: var(--accent); }
+
+  .status-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+  }
+  @media (max-width: 480px) { .status-grid { grid-template-columns: repeat(3, 1fr); } }
+  .status-btn {
+    padding: 10px 8px;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+  .status-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+  .status-btn:hover:not(.active) { border-color: var(--accent); color: var(--text); }
+
+  /* Form elements */
+  .field { margin-bottom: 14px; }
+  .field label {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 5px;
+    font-weight: 500;
+  }
+  input[type="text"], input[type="email"], input[type="password"], input[type="number"], textarea {
+    width: 100%;
+    padding: 12px 14px;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    color: var(--text);
+    font-size: 16px;
+    font-family: inherit;
+  }
+  input:focus, textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    background: #28303d;
+  }
+  textarea { min-height: 80px; resize: vertical; }
+  .input-wrap { position: relative; }
+  .input-wrap .prefix {
+    position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+    color: var(--muted); pointer-events: none;
+  }
+  .input-wrap input { padding-left: 28px; }
+
+  .save-btn {
+    width: 100%;
+    padding: 13px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+    margin-top: 8px;
+  }
+  .save-btn:active { transform: scale(0.99); }
+  .save-btn:hover:not(:disabled) { background: var(--accent-2); }
+  .save-btn:disabled { opacity: 0.6; cursor: wait; }
+
+  .delete-btn {
+    width: 100%;
+    padding: 11px;
+    background: transparent;
+    color: var(--bad);
+    border: 1px solid rgba(252, 165, 165, 0.3);
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: inherit;
+    margin-top: 8px;
+  }
+  .delete-btn:hover { background: rgba(252, 165, 165, 0.05); }
+
+  .error-msg {
+    color: var(--bad);
+    font-size: 13px;
+    margin-top: 8px;
+    text-align: center;
+  }
+
+  .spinner {
+    display: inline-block;
+    width: 14px; height: 14px;
+    border: 2px solid rgba(74, 158, 255, 0.3);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin-right: 6px;
+    vertical-align: -3px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading-state {
+    text-align: center;
+    padding: 40px;
+    color: var(--muted);
+  }
+
+  /* Version tag */
+  .version-tag {
+    display: inline-block;
+    padding: 2px 7px;
+    margin-left: 6px;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 500;
+    border-radius: 99px;
+    vertical-align: middle;
+    letter-spacing: 0.3px;
+  }
+
+  /* ===== Tab Navigation ===== */
+  .topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .tab-btn {
+    padding: 6px 12px;
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--muted);
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active {
+    background: rgba(74, 158, 255, 0.1);
+    color: var(--accent);
+    border-color: rgba(74, 158, 255, 0.3);
+  }
+
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* ===== Settings Page ===== */
+  .settings-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .settings-card h2 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .settings-desc {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 18px;
+    line-height: 1.5;
+  }
+
+  .service-section {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .service-section.disabled { opacity: 0.5; }
+  .service-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+  .service-header h3 {
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  .row-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+  @media (max-width: 600px) { .row-3 { grid-template-columns: 1fr; } }
+
+  .junk-tier {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 10px;
+  }
+  .tier-label {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--accent-2);
+  }
+
+  /* Toggle Switch */
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+    flex-shrink: 0;
+  }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    background: var(--border);
+    border-radius: 24px;
+    transition: 0.2s;
+  }
+  .slider:before {
+    content: "";
+    position: absolute;
+    height: 18px; width: 18px;
+    left: 3px; bottom: 3px;
+    background: white;
+    border-radius: 50%;
+    transition: 0.2s;
+  }
+  input:checked + .slider { background: var(--accent); }
+  input:checked + .slider:before { transform: translateX(20px); }
+
+  .toggle-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+    gap: 12px;
+  }
+  .toggle-row:last-of-type { border-bottom: none; }
+  .toggle-label {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+  .toggle-hint {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+
+  /* Save bar */
+  .save-bar {
+    position: sticky;
+    bottom: 0;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-top: 16px;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
+  }
+  .save-bar.dirty { border-color: var(--warn); }
+  .save-status {
+    font-size: 12px;
+    color: var(--muted);
+    flex: 1;
+  }
+  .save-status.dirty { color: var(--warn); }
+  .save-status.saved { color: var(--good); }
+  .save-actions { display: flex; gap: 8px; }
+  .save-actions .save-btn {
+    width: auto;
+    padding: 10px 18px;
+    margin: 0;
+  }
+  .reset-btn {
+    padding: 10px 14px;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .reset-btn:hover { border-color: var(--bad); color: var(--bad); }
+
+  .field .hint { font-size: 11px; color: var(--muted); margin-top: 4px; opacity: 0.85; line-height: 1.4; }
+</style>
+</head>
+<body>
+
+<!-- Login Screen -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
+    <h1><span style="color: var(--accent);">Restoration</span> Admin</h1>
+    <div class="subtitle">Quote Management Dashboard</div>
+    <div class="accent-bar"></div>
+
+    <div class="field">
+      <label for="email">Email</label>
+      <input type="email" id="email" autocomplete="username" />
+    </div>
+    <div class="field">
+      <label for="password">Password</label>
+      <input type="password" id="password" autocomplete="current-password" />
+    </div>
+    <button class="save-btn" id="loginBtn">Sign In</button>
+    <div class="error-msg" id="loginError"></div>
+  </div>
+</div>
+
+<!-- Dashboard -->
+<div class="dashboard" id="dashboard">
+  <div class="topbar">
+    <h1><span class="accent">Restoration</span> Admin <span class="version-tag" id="versionTag"></span></h1>
+    <div class="topbar-actions">
+      <button class="tab-btn active" data-view="quotes">Quotes</button>
+      <button class="tab-btn" data-view="settings">Settings</button>
+      <button class="logout-btn" id="logoutBtn">Sign Out</button>
+    </div>
+  </div>
+
+  <!-- Quotes View -->
+  <div class="view active" id="view-quotes">
+    <div class="container">
+      <div class="stats" id="stats">
+        <!-- Filled by JS -->
+      </div>
+
+      <div class="quote-list" id="quoteList">
+        <div class="loading-state"><span class="spinner"></span>Loading quotes...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings View -->
+  <div class="view" id="view-settings">
+    <div class="container">
+      <div class="settings-loading" id="settingsLoading">
+        <div class="loading-state"><span class="spinner"></span>Loading settings...</div>
+      </div>
+      <div class="settings-content" id="settingsContent" style="display: none;">
+
+        <!-- Pricing -->
+        <div class="settings-card">
+          <h2>Service Pricing</h2>
+          <p class="settings-desc">Adjust rates per service. Changes take effect immediately on the customer form.</p>
+
+          <div class="service-section" data-service="house_wash">
+            <div class="service-header">
+              <h3>🏠 House Wash</h3>
+              <label class="switch">
+                <input type="checkbox" data-toggle="house_wash" />
+                <span class="slider"></span>
+              </label>
+            </div>
+            <div class="row-3">
+              <div class="field">
+                <label>Basic Rate ($/sq ft exterior)</label>
+                <div class="input-wrap"><span class="prefix">$</span><input type="number" data-rate="house_wash.basic" step="0.01" min="0" /></div>
+              </div>
+              <div class="field">
+                <label>Standard Rate</label>
+                <div class="input-wrap"><span class="prefix">$</span><input type="number" data-rate="house_wash.standard" step="0.01" min="0" /></div>
+              </div>
+              <div class="field">
+                <label>Premium Rate</label>
+                <div class="input-wrap"><span class="prefix">$</span><input type="number" data-rate="house_wash.premium" step="0.01" min="0" /></div>
+              </div>
+            </div>
+            <div class="field">
+              <label>Minimum Job Price</label>
+              <div class="input-wrap"><span class="prefix">$</span><input type="number" data-min="house_wash" step="5" min="0" /></div>
+            </div>
+          </div>
+
+          <div class="service-section" data-service="driveway">
+            <div class="service-header">
+              <h3>🛣️ Driveway / Concrete</h3>
+              <label class="switch">
+                <input type="checkbox" data-toggle="driveway" />
+                <span class="slider"></span>
+              </label>
+            </div>
+            <div class="row-3">
+              <div class="field">
+                <label>Light Rate ($/sq ft)</label>
+                <div class="input-wrap"><span class="prefix">$</span><input type="number" data-rate="driveway.light" step="0.01" min="0" /></div>
+              </div>
+              <div class="field">
+                <label>Standard Rate</label>
+                <div class="input-wrap"><span class="prefix">$</span><input type="number" data-rate="driveway.standard" step="0.01" min="0" /></div>
+              </div>
+              <div class="field">
+                <label>Heavy Rate</label>
+                <div class="input-wrap"><span class="prefix">$</span><input type="number" data-rate="driveway.heavy" step="0.01" min="0" /></div>
+              </div>
+            </div>
+            <div class="field">
+              <label>Minimum Job Price</label>
+              <div class="input-wrap"><span class="prefix">$</span><input type="number" data-min="driveway" step="5" min="0" /></div>
+            </div>
+          </div>
+
+          <div class="service-section" data-service="roof">
+            <div class="service-header">
+              <h3>🏚️ Roof Wash</h3>
+              <label class="switch">
+                <input type="checkbox" data-toggle="roof" />
+                <span class="slider"></span>
+              </label>
+            </div>
+            <div class="row-3">
+              <div class="field">
+                <label>Light Rate ($/sq ft)</label>
+                <div class="input-wrap"><span class="prefix">$</span><input type="number" data-rate="roof.light" step="0.01" min="0" /></div>
+              </div>
+              <div class="field">
+                <label>Standard Rate</label>
+                <div class="input-wrap"><span class="prefix">$</span><input type="number" data-rate="roof.standard" step="0.01" min="0" /></div>
+              </div>
+              <div class="field">
+                <label>Heavy Rate</label>
+                <div class="input-wrap"><span class="prefix">$</span><input type="number" data-rate="roof.heavy" step="0.01" min="0" /></div>
+              </div>
+            </div>
+            <div class="field">
+              <label>Minimum Job Price</label>
+              <div class="input-wrap"><span class="prefix">$</span><input type="number" data-min="roof" step="5" min="0" /></div>
+            </div>
+          </div>
+
+          <div class="service-section" data-service="gutters">
+            <div class="service-header">
+              <h3>🪣 Gutters</h3>
+              <label class="switch">
+                <input type="checkbox" data-toggle="gutters" />
+                <span class="slider"></span>
+              </label>
+            </div>
+            <div class="row-3">
+              <div class="field">
+                <label>Cleaning ($/linear ft)</label>
+                <div class="input-wrap"><span class="prefix">$</span><input type="number" data-rate="gutters.cleaning" step="0.05" min="0" /></div>
+              </div>
+              <div class="field">
+                <label>Brightening</label>
+                <div class="input-wrap"><span class="prefix">$</span><input type="number" data-rate="gutters.brightening" step="0.05" min="0" /></div>
+              </div>
+              <div class="field">
+                <label>Both</label>
+                <div class="input-wrap"><span class="prefix">$</span><input type="number" data-rate="gutters.both" step="0.05" min="0" /></div>
+              </div>
+            </div>
+            <div class="field">
+              <label>Minimum Job Price</label>
+              <div class="input-wrap"><span class="prefix">$</span><input type="number" data-min="gutters" step="5" min="0" /></div>
+            </div>
+          </div>
+
+          <div class="service-section" data-service="junk">
+            <div class="service-header">
+              <h3>🗑️ Junk Removal</h3>
+              <label class="switch">
+                <input type="checkbox" data-toggle="junk" />
+                <span class="slider"></span>
+              </label>
+            </div>
+            <p class="settings-desc" style="margin-bottom: 12px;">Set price ranges for each truck load size</p>
+            <div class="junk-tier" data-tier="single">
+              <div class="tier-label">Single Item</div>
+              <div class="row-2">
+                <div class="field"><label>Low</label><div class="input-wrap"><span class="prefix">$</span><input type="number" data-junk="single.low" step="5" min="0" /></div></div>
+                <div class="field"><label>High</label><div class="input-wrap"><span class="prefix">$</span><input type="number" data-junk="single.high" step="5" min="0" /></div></div>
+              </div>
+            </div>
+            <div class="junk-tier" data-tier="quarter">
+              <div class="tier-label">1/4 Truck Load</div>
+              <div class="row-2">
+                <div class="field"><label>Low</label><div class="input-wrap"><span class="prefix">$</span><input type="number" data-junk="quarter.low" step="5" min="0" /></div></div>
+                <div class="field"><label>High</label><div class="input-wrap"><span class="prefix">$</span><input type="number" data-junk="quarter.high" step="5" min="0" /></div></div>
+              </div>
+            </div>
+            <div class="junk-tier" data-tier="half">
+              <div class="tier-label">1/2 Truck Load</div>
+              <div class="row-2">
+                <div class="field"><label>Low</label><div class="input-wrap"><span class="prefix">$</span><input type="number" data-junk="half.low" step="5" min="0" /></div></div>
+                <div class="field"><label>High</label><div class="input-wrap"><span class="prefix">$</span><input type="number" data-junk="half.high" step="5" min="0" /></div></div>
+              </div>
+            </div>
+            <div class="junk-tier" data-tier="threequarter">
+              <div class="tier-label">3/4 Truck Load</div>
+              <div class="row-2">
+                <div class="field"><label>Low</label><div class="input-wrap"><span class="prefix">$</span><input type="number" data-junk="threequarter.low" step="5" min="0" /></div></div>
+                <div class="field"><label>High</label><div class="input-wrap"><span class="prefix">$</span><input type="number" data-junk="threequarter.high" step="5" min="0" /></div></div>
+              </div>
+            </div>
+            <div class="junk-tier" data-tier="full">
+              <div class="tier-label">Full Truck Load</div>
+              <div class="row-2">
+                <div class="field"><label>Low</label><div class="input-wrap"><span class="prefix">$</span><input type="number" data-junk="full.low" step="5" min="0" /></div></div>
+                <div class="field"><label>High</label><div class="input-wrap"><span class="prefix">$</span><input type="number" data-junk="full.high" step="5" min="0" /></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quote Behavior -->
+        <div class="settings-card">
+          <h2>Quote Behavior</h2>
+          <p class="settings-desc">Control how the customer-facing quote form behaves</p>
+
+          <div class="toggle-row">
+            <div>
+              <div class="toggle-label">Show Instant Quote to Customer</div>
+              <div class="toggle-hint">If off, customers submit a request without seeing the price (you quote later)</div>
+            </div>
+            <label class="switch">
+              <input type="checkbox" data-behavior="show_instant_quote" />
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="toggle-row">
+            <div>
+              <div class="toggle-label">Show Price as Range</div>
+              <div class="toggle-hint">Show range like "$300-$450" instead of single price (recommended)</div>
+            </div>
+            <label class="switch">
+              <input type="checkbox" data-behavior="show_price_range" />
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="toggle-row">
+            <div>
+              <div class="toggle-label">Require Marketing Consent</div>
+              <div class="toggle-hint">If on, customer must check the marketing consent box to submit</div>
+            </div>
+            <label class="switch">
+              <input type="checkbox" data-behavior="require_marketing_consent" />
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="row-2" style="margin-top: 16px;">
+            <div class="field">
+              <label>Price Range Spread Below (%)</label>
+              <div class="input-wrap"><span class="prefix">-</span><input type="number" data-behavior-num="price_range_spread_low" step="0.01" min="0" max="0.5" />%</div>
+              <div class="hint">How far below the calc to show low end (0.10 = 10% below)</div>
+            </div>
+            <div class="field">
+              <label>Price Range Spread Above (%)</label>
+              <div class="input-wrap"><span class="prefix">+</span><input type="number" data-behavior-num="price_range_spread_high" step="0.01" min="0" max="0.5" />%</div>
+              <div class="hint">How far above the calc to show high end (0.15 = 15% above)</div>
+            </div>
+          </div>
+
+          <div class="row-2" style="margin-top: 16px;">
+            <div class="field">
+              <label>Bundle Discount (%)</label>
+              <input type="number" data-behavior-num="bundle_discount_percent" step="1" min="0" max="50" />
+              <div class="hint">Discount when customer selects multiple services</div>
+            </div>
+            <div class="field">
+              <label>Discount Triggered At</label>
+              <input type="number" data-behavior-num="bundle_discount_threshold" step="1" min="2" max="5" />
+              <div class="hint">Number of services to qualify (e.g. 3 means 3+ services)</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Business Info -->
+        <div class="settings-card">
+          <h2>Business Info</h2>
+          <p class="settings-desc">Your contact info shown to customers</p>
+
+          <div class="field">
+            <label>Business Name</label>
+            <input type="text" data-business="name" />
+          </div>
+          <div class="row-2">
+            <div class="field">
+              <label>Phone</label>
+              <input type="text" data-business="phone" />
+            </div>
+            <div class="field">
+              <label>Email</label>
+              <input type="text" data-business="email" />
+            </div>
+          </div>
+          <div class="field">
+            <label>Booking Link</label>
+            <input type="text" data-business="booking_link" />
+          </div>
+          <div class="field">
+            <label>Reviews Link</label>
+            <input type="text" data-business="reviews_link" />
+          </div>
+          <div class="field">
+            <label>Facebook Link</label>
+            <input type="text" data-business="facebook_link" />
+          </div>
+          <div class="field">
+            <label>Service Area</label>
+            <input type="text" data-business="service_area" />
+            <div class="hint">For your reference and future filtering features</div>
+          </div>
+        </div>
+
+        <!-- Internal -->
+        <div class="settings-card">
+          <h2>Internal Defaults</h2>
+          <p class="settings-desc">Used for cost tracking and future features (not shown to customers)</p>
+
+          <div class="row-2">
+            <div class="field">
+              <label>Default Labor Rate</label>
+              <div class="input-wrap"><span class="prefix">$</span><input type="number" data-internal="default_labor_rate" step="1" min="0" /></div>
+              <div class="hint">Per hour, for cost calculations</div>
+            </div>
+            <div class="field">
+              <label>Default Fuel/Travel</label>
+              <div class="input-wrap"><span class="prefix">$</span><input type="number" data-internal="default_fuel_cost" step="5" min="0" /></div>
+              <div class="hint">Per job estimate</div>
+            </div>
+          </div>
+          <div class="field">
+            <label>Default Chemical Cost (per 1000 sq ft)</label>
+            <div class="input-wrap"><span class="prefix">$</span><input type="number" data-internal="default_chem_cost_per_ksqft" step="1" min="0" /></div>
+          </div>
+          <div class="field">
+            <label>Home Address (for mileage)</label>
+            <input type="text" data-internal="home_address" />
+            <div class="hint">Used for travel cost calculations from your shop</div>
+          </div>
+        </div>
+
+        <!-- Save bar -->
+        <div class="save-bar" id="saveBar">
+          <div class="save-status" id="saveStatus"></div>
+          <div class="save-actions">
+            <button class="reset-btn" id="resetSettingsBtn">Reset</button>
+            <button class="save-btn" id="saveSettingsBtn">Save All Changes</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Quote Detail Modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <h2 id="modalTitle">Quote Detail</h2>
+      <button class="close-btn" id="closeModal">&times;</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<script type="module">
+  import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
+
+  // These get replaced when you set up Supabase
+  // The setup guide will tell you where to update these
+  const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+  const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const $ = (id) => document.getElementById(id);
+  const fmt = (n) => '$' + Math.round(n || 0).toLocaleString('en-US');
+
+  let currentSession = null;
+  let allQuotes = [];
+  let activeFilter = 'all';
+
+  // ===== Auth =====
+  async function checkAuth() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      currentSession = session;
+      showDashboard();
+    } else {
+      showLogin();
+    }
+  }
+
+  async function login() {
+    const email = $('email').value.trim();
+    const password = $('password').value;
+    const errEl = $('loginError');
+    const btn = $('loginBtn');
+
+    if (!email || !password) {
+      errEl.textContent = 'Email and password required';
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Signing in...';
+    errEl.textContent = '';
+
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+    btn.disabled = false;
+    btn.textContent = 'Sign In';
+
+    if (error) {
+      errEl.textContent = error.message;
+      return;
+    }
+    currentSession = data.session;
+    showDashboard();
+  }
+
+  async function logout() {
+    await supabase.auth.signOut();
+    currentSession = null;
+    showLogin();
+  }
+
+  function showLogin() {
+    $('loginScreen').style.display = 'flex';
+    $('dashboard').classList.remove('active');
+  }
+
+  function showDashboard() {
+    $('loginScreen').style.display = 'none';
+    $('dashboard').classList.add('active');
+    loadQuotes();
+    loadVersion();
+  }
+
+  async function loadVersion() {
+    try {
+      const response = await fetch('/version.json');
+      if (!response.ok) return;
+      const data = await response.json();
+      if (data.version) {
+        $('versionTag').textContent = `v${data.version}`;
+      }
+    } catch (err) { /* silently fail */ }
+  }
+
+  $('loginBtn').addEventListener('click', login);
+  $('logoutBtn').addEventListener('click', logout);
+  $('password').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') login();
+  });
+
+  // ===== Load Quotes =====
+  async function loadQuotes() {
+    try {
+      const response = await fetch('/api/quotes', {
+        headers: { 'Authorization': `Bearer ${currentSession.access_token}` }
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error);
+      allQuotes = data.quotes || [];
+      renderStats();
+      renderList();
+    } catch (err) {
+      $('quoteList').innerHTML = `<div class="empty-state">Error loading quotes: ${err.message}</div>`;
+    }
+  }
+
+  function renderStats() {
+    const counts = {
+      all: allQuotes.length,
+      pending: allQuotes.filter(q => q.status === 'pending').length,
+      quoted: allQuotes.filter(q => q.status === 'quoted').length,
+      won: allQuotes.filter(q => q.status === 'won').length,
+      lost: allQuotes.filter(q => q.status === 'lost').length,
+      completed: allQuotes.filter(q => q.status === 'completed').length
+    };
+
+    const stats = [
+      { key: 'pending', label: 'Pending', count: counts.pending },
+      { key: 'quoted', label: 'Quoted', count: counts.quoted },
+      { key: 'won', label: 'Won', count: counts.won },
+      { key: 'lost', label: 'Lost', count: counts.lost },
+      { key: 'completed', label: 'Completed', count: counts.completed }
+    ];
+
+    $('stats').innerHTML = stats.map(s => `
+      <div class="stat ${activeFilter === s.key ? 'active' : ''}" data-filter="${s.key}">
+        <div class="count ${s.key}">${s.count}</div>
+        <div class="label">${s.label}</div>
+      </div>
+    `).join('');
+
+    document.querySelectorAll('.stat').forEach(el => {
+      el.addEventListener('click', () => {
+        activeFilter = activeFilter === el.dataset.filter ? 'all' : el.dataset.filter;
+        renderStats();
+        renderList();
+      });
+    });
+  }
+
+  function renderList() {
+    const filtered = activeFilter === 'all'
+      ? allQuotes
+      : allQuotes.filter(q => q.status === activeFilter);
+
+    if (filtered.length === 0) {
+      $('quoteList').innerHTML = `<div class="empty-state">No quotes ${activeFilter === 'all' ? 'yet' : 'in this status'}</div>`;
+      return;
+    }
+
+    $('quoteList').innerHTML = filtered.map(q => {
+      const date = new Date(q.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      const time = new Date(q.created_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+      const services = (q.services || []).map(s => `<span class="service-tag">${s.name || s.type}</span>`).join('');
+      return `
+        <div class="quote-item" data-id="${q.id}">
+          <div class="quote-header">
+            <div class="name">${escapeHtml(q.customer_name)}</div>
+            <div class="price">${fmt(q.price_low)} - ${fmt(q.price_high)}</div>
+          </div>
+          <div class="quote-meta">
+            ${escapeHtml(q.customer_address)}<br>
+            ${date} at ${time} · ${escapeHtml(q.customer_phone)}
+          </div>
+          <div class="quote-services">${services}</div>
+          <span class="status-badge ${q.status}">${q.status}</span>
+        </div>
+      `;
+    }).join('');
+
+    document.querySelectorAll('.quote-item').forEach(el => {
+      el.addEventListener('click', () => openQuote(el.dataset.id));
+    });
+  }
+
+  // ===== Quote Detail Modal =====
+  function openQuote(id) {
+    const q = allQuotes.find(x => x.id === id);
+    if (!q) return;
+
+    $('modalTitle').textContent = q.customer_name;
+
+    const services = (q.services || []).map(s => `
+      <div class="info-row">
+        <span class="label">${s.name || s.type}</span>
+        <span class="value">${fmt(s.price_low)} - ${fmt(s.price_high)}<br><span style="font-size: 11px; color: var(--muted);">${s.details || ''}</span></span>
+      </div>
+    `).join('');
+
+    const phoneClean = (q.customer_phone || '').replace(/\D/g, '');
+
+    $('modalBody').innerHTML = `
+      <div class="modal-section">
+        <h3>Contact</h3>
+        <div class="info-row">
+          <span class="label">Phone</span>
+          <span class="value"><a href="tel:${phoneClean}">${escapeHtml(q.customer_phone)}</a></span>
+        </div>
+        <div class="info-row">
+          <span class="label">Email</span>
+          <span class="value"><a href="mailto:${escapeHtml(q.customer_email)}">${escapeHtml(q.customer_email)}</a></span>
+        </div>
+        <div class="info-row">
+          <span class="label">Address</span>
+          <span class="value">${escapeHtml(q.customer_address)}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Marketing OK</span>
+          <span class="value">${q.marketing_consent ? '✓ Yes' : 'No'}</span>
+        </div>
+
+        <div class="action-btns">
+          <a class="action-btn call" href="tel:${phoneClean}">📞 Call</a>
+          <a class="action-btn call" href="sms:${phoneClean}">💬 Text</a>
+          <a class="action-btn email" href="mailto:${escapeHtml(q.customer_email)}">✉️ Email</a>
+          <a class="action-btn" href="https://www.google.com/maps/place/${encodeURIComponent(q.customer_address)}" target="_blank">📍 Maps</a>
+        </div>
+      </div>
+
+      <div class="modal-section">
+        <h3>Property</h3>
+        ${q.living_sqft ? `<div class="info-row"><span class="label">Living Sq Ft</span><span class="value">${q.living_sqft.toLocaleString()}</span></div>` : ''}
+        ${q.stories ? `<div class="info-row"><span class="label">Stories</span><span class="value">${q.stories}</span></div>` : ''}
+        ${q.bedrooms ? `<div class="info-row"><span class="label">Bed/Bath</span><span class="value">${q.bedrooms}bd / ${q.bathrooms || '?'}ba</span></div>` : ''}
+        ${q.year_built ? `<div class="info-row"><span class="label">Year Built</span><span class="value">${q.year_built}</span></div>` : ''}
+        ${!q.living_sqft ? '<div class="info-row"><span class="value">No property data on file</span></div>' : ''}
+      </div>
+
+      <div class="modal-section">
+        <h3>Services Quoted</h3>
+        ${services || '<div class="info-row"><span class="value">No services listed</span></div>'}
+        <div class="info-row" style="border-top: 2px solid var(--accent); margin-top: 8px; padding-top: 12px;">
+          <span class="label" style="font-weight: 600; color: var(--text);">Total Estimate</span>
+          <span class="value" style="font-weight: 700; color: var(--good); font-size: 16px;">${fmt(q.price_low)} - ${fmt(q.price_high)}</span>
+        </div>
+      </div>
+
+      <div class="modal-section">
+        <h3>Status</h3>
+        <div class="status-grid">
+          ${['pending','quoted','won','lost','completed'].map(s => `
+            <button class="status-btn ${q.status === s ? 'active' : ''}" data-status="${s}">${s}</button>
+          `).join('')}
+        </div>
+      </div>
+
+      <div class="modal-section">
+        <h3>Final Price (when confirmed)</h3>
+        <div class="input-wrap">
+          <span class="prefix">$</span>
+          <input type="number" id="finalPrice" value="${q.final_price || ''}" placeholder="0" step="1" />
+        </div>
+      </div>
+
+      <div class="modal-section">
+        <h3>Notes (private)</h3>
+        <textarea id="notes" placeholder="Internal notes about this quote...">${escapeHtml(q.notes || '')}</textarea>
+      </div>
+
+      <button class="save-btn" id="saveBtn">Save Changes</button>
+      <button class="delete-btn" id="deleteBtn">Delete Quote</button>
+    `;
+
+    // Wire up status buttons
+    $('modalBody').querySelectorAll('.status-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        $('modalBody').querySelectorAll('.status-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
+
+    $('saveBtn').addEventListener('click', () => saveQuote(id));
+    $('deleteBtn').addEventListener('click', () => deleteQuote(id));
+
+    $('modalOverlay').classList.add('show');
+  }
+
+  async function saveQuote(id) {
+    const status = $('modalBody').querySelector('.status-btn.active')?.dataset.status;
+    const finalPrice = +$('finalPrice').value || null;
+    const notes = $('notes').value;
+
+    const btn = $('saveBtn');
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+
+    try {
+      const response = await fetch(`/api/quotes?id=${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${currentSession.access_token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ status, final_price: finalPrice, notes })
+      });
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error);
+      }
+      await loadQuotes();
+      closeModal();
+    } catch (err) {
+      alert('Error saving: ' + err.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Save Changes';
+    }
+  }
+
+  async function deleteQuote(id) {
+    if (!confirm('Permanently delete this quote? This cannot be undone.')) return;
+
+    try {
+      const response = await fetch(`/api/quotes?id=${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${currentSession.access_token}` }
+      });
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error);
+      }
+      await loadQuotes();
+      closeModal();
+    } catch (err) {
+      alert('Error deleting: ' + err.message);
+    }
+  }
+
+  function closeModal() {
+    $('modalOverlay').classList.remove('show');
+  }
+
+  $('closeModal').addEventListener('click', closeModal);
+  $('modalOverlay').addEventListener('click', (e) => {
+    if (e.target.id === 'modalOverlay') closeModal();
+  });
+
+  // Helper to prevent XSS
+  function escapeHtml(s) {
+    if (!s) return '';
+    return String(s).replace(/[&<>"']/g, c => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+  }
+
+  // Auto-refresh every 30 seconds when dashboard is visible
+  setInterval(() => {
+    if ($('dashboard').classList.contains('active') && !$('modalOverlay').classList.contains('show')) {
+      loadQuotes();
+    }
+  }, 30000);
+
+  // ===== Tab Switching =====
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const view = btn.dataset.view;
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+      document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === `view-${view}`));
+      if (view === 'settings' && !settingsLoaded) loadSettings();
+    });
+  });
+
+  // ===== Settings Management =====
+  let currentConfig = null;
+  let originalConfig = null;
+  let settingsLoaded = false;
+  let settingsDirty = false;
+
+  async function loadSettings() {
+    try {
+      const response = await fetch('/api/settings');
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error);
+
+      currentConfig = data.config;
+      originalConfig = JSON.parse(JSON.stringify(currentConfig)); // deep clone
+      populateSettingsForm(currentConfig);
+      $('settingsLoading').style.display = 'none';
+      $('settingsContent').style.display = 'block';
+      settingsLoaded = true;
+      markClean();
+    } catch (err) {
+      $('settingsLoading').innerHTML = `<div class="loading-state" style="color: var(--bad);">Error loading settings: ${err.message}</div>`;
+    }
+  }
+
+  function populateSettingsForm(c) {
+    // Service rates
+    document.querySelectorAll('[data-rate]').forEach(input => {
+      const [svc, level] = input.dataset.rate.split('.');
+      const val = c.services?.[svc]?.rates?.[level];
+      if (val !== undefined) input.value = val;
+    });
+
+    // Service min prices
+    document.querySelectorAll('[data-min]').forEach(input => {
+      const svc = input.dataset.min;
+      const val = c.services?.[svc]?.min_price;
+      if (val !== undefined) input.value = val;
+    });
+
+    // Service enabled toggles
+    document.querySelectorAll('[data-toggle]').forEach(input => {
+      const svc = input.dataset.toggle;
+      input.checked = c.services?.[svc]?.enabled !== false;
+      updateServiceDisabledStyle(svc, input.checked);
+    });
+
+    // Junk tiers
+    document.querySelectorAll('[data-junk]').forEach(input => {
+      const [tier, key] = input.dataset.junk.split('.');
+      const val = c.services?.junk?.tiers?.[tier]?.[key];
+      if (val !== undefined) input.value = val;
+    });
+
+    // Behavior toggles
+    document.querySelectorAll('[data-behavior]').forEach(input => {
+      const key = input.dataset.behavior;
+      input.checked = !!c.behavior?.[key];
+    });
+
+    // Behavior numeric
+    document.querySelectorAll('[data-behavior-num]').forEach(input => {
+      const key = input.dataset.behaviorNum;
+      const val = c.behavior?.[key];
+      if (val !== undefined) input.value = val;
+    });
+
+    // Business
+    document.querySelectorAll('[data-business]').forEach(input => {
+      const key = input.dataset.business;
+      input.value = c.business?.[key] || '';
+    });
+
+    // Internal
+    document.querySelectorAll('[data-internal]').forEach(input => {
+      const key = input.dataset.internal;
+      const val = c.internal?.[key];
+      input.value = val !== undefined ? val : '';
+    });
+  }
+
+  function updateServiceDisabledStyle(svc, enabled) {
+    const section = document.querySelector(`.service-section[data-service="${svc}"]`);
+    if (section) section.classList.toggle('disabled', !enabled);
+  }
+
+  function buildConfigFromForm() {
+    const c = JSON.parse(JSON.stringify(currentConfig)); // start from current
+
+    // Service rates
+    document.querySelectorAll('[data-rate]').forEach(input => {
+      const [svc, level] = input.dataset.rate.split('.');
+      if (!c.services[svc]) c.services[svc] = {};
+      if (!c.services[svc].rates) c.services[svc].rates = {};
+      c.services[svc].rates[level] = parseFloat(input.value) || 0;
+    });
+
+    // Min prices
+    document.querySelectorAll('[data-min]').forEach(input => {
+      const svc = input.dataset.min;
+      if (!c.services[svc]) c.services[svc] = {};
+      c.services[svc].min_price = parseFloat(input.value) || 0;
+    });
+
+    // Toggles
+    document.querySelectorAll('[data-toggle]').forEach(input => {
+      const svc = input.dataset.toggle;
+      if (!c.services[svc]) c.services[svc] = {};
+      c.services[svc].enabled = input.checked;
+    });
+
+    // Junk
+    document.querySelectorAll('[data-junk]').forEach(input => {
+      const [tier, key] = input.dataset.junk.split('.');
+      if (!c.services.junk) c.services.junk = { tiers: {} };
+      if (!c.services.junk.tiers) c.services.junk.tiers = {};
+      if (!c.services.junk.tiers[tier]) c.services.junk.tiers[tier] = {};
+      c.services.junk.tiers[tier][key] = parseFloat(input.value) || 0;
+    });
+
+    // Behavior toggles
+    document.querySelectorAll('[data-behavior]').forEach(input => {
+      const key = input.dataset.behavior;
+      if (!c.behavior) c.behavior = {};
+      c.behavior[key] = input.checked;
+    });
+
+    // Behavior numeric
+    document.querySelectorAll('[data-behavior-num]').forEach(input => {
+      const key = input.dataset.behaviorNum;
+      if (!c.behavior) c.behavior = {};
+      c.behavior[key] = parseFloat(input.value) || 0;
+    });
+
+    // Business
+    document.querySelectorAll('[data-business]').forEach(input => {
+      const key = input.dataset.business;
+      if (!c.business) c.business = {};
+      c.business[key] = input.value.trim();
+    });
+
+    // Internal
+    document.querySelectorAll('[data-internal]').forEach(input => {
+      const key = input.dataset.internal;
+      if (!c.internal) c.internal = {};
+      const num = parseFloat(input.value);
+      c.internal[key] = isNaN(num) ? input.value.trim() : num;
+    });
+
+    return c;
+  }
+
+  function markDirty() {
+    settingsDirty = true;
+    $('saveBar').classList.add('dirty');
+    $('saveStatus').classList.add('dirty');
+    $('saveStatus').classList.remove('saved');
+    $('saveStatus').textContent = 'Unsaved changes';
+  }
+
+  function markClean() {
+    settingsDirty = false;
+    $('saveBar').classList.remove('dirty');
+    $('saveStatus').classList.remove('dirty');
+    $('saveStatus').textContent = '';
+  }
+
+  function markSaved() {
+    settingsDirty = false;
+    $('saveBar').classList.remove('dirty');
+    $('saveStatus').classList.remove('dirty');
+    $('saveStatus').classList.add('saved');
+    $('saveStatus').textContent = '✓ Saved';
+    setTimeout(() => {
+      if (!settingsDirty) {
+        $('saveStatus').classList.remove('saved');
+        $('saveStatus').textContent = '';
+      }
+    }, 3000);
+  }
+
+  // Watch all settings inputs
+  document.querySelectorAll('#view-settings input').forEach(input => {
+    input.addEventListener('input', () => {
+      markDirty();
+      // Update visual disabled state for service toggles
+      if (input.dataset.toggle) {
+        updateServiceDisabledStyle(input.dataset.toggle, input.checked);
+      }
+    });
+    input.addEventListener('change', () => {
+      markDirty();
+      if (input.dataset.toggle) {
+        updateServiceDisabledStyle(input.dataset.toggle, input.checked);
+      }
+    });
+  });
+
+  // Save settings
+  $('saveSettingsBtn').addEventListener('click', async () => {
+    const btn = $('saveSettingsBtn');
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+
+    try {
+      const newConfig = buildConfigFromForm();
+      const response = await fetch('/api/settings', {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${currentSession.access_token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(newConfig)
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error);
+
+      currentConfig = newConfig;
+      originalConfig = JSON.parse(JSON.stringify(newConfig));
+      markSaved();
+    } catch (err) {
+      alert('Error saving: ' + err.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Save All Changes';
+    }
+  });
+
+  // Reset to last saved
+  $('resetSettingsBtn').addEventListener('click', () => {
+    if (!confirm('Discard all unsaved changes and revert to last saved settings?')) return;
+    currentConfig = JSON.parse(JSON.stringify(originalConfig));
+    populateSettingsForm(currentConfig);
+    markClean();
+  });
+
+  // Warn before leaving with unsaved changes
+  window.addEventListener('beforeunload', (e) => {
+    if (settingsDirty) {
+      e.preventDefault();
+      e.returnValue = '';
+    }
+  });
+
+  // Init
+  checkAuth();
+</script>
+</body>
+</html>
