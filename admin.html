@@ -1609,8 +1609,6 @@
       c.internal[key] = isNaN(num) ? input.value.trim() : num;
     });
 
-    return c;
-  
     // Collect sub-option toggle states
     document.querySelectorAll('[data-rate-toggle]').forEach(cb => {
       const parts = cb.getAttribute('data-rate-toggle').split('.');
@@ -1625,6 +1623,8 @@
       if (!c.services.junk.enabled_tiers) c.services.junk.enabled_tiers = {};
       c.services.junk.enabled_tiers[tier] = cb.checked;
     });
+
+    return c;
 }
 
   function markDirty() {
