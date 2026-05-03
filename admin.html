@@ -611,6 +611,11 @@
       display: none;
     }
     .jobber-send-btn:hover { background: #6d28d9; }
+
+    .sub-toggle { width:14px; height:14px; margin-right:6px; accent-color:var(--accent); cursor:pointer; vertical-align:middle; }
+    .field.disabled-tier { opacity:0.35; pointer-events:none; }
+    .tier-card.disabled-tier { opacity:0.35; pointer-events:none; }
+    .tier-label .sub-toggle { width:15px; height:15px; margin-right:8px; accent-color:var(--accent); cursor:pointer; vertical-align:middle; }
 </style>
 </head>
 <body>
@@ -682,15 +687,15 @@
             </div>
             <div class="row-3">
               <div class="field">
-                <label>Basic Rate ($/sq ft exterior)</label>
+                <label><input type="checkbox" class="sub-toggle" data-rate-toggle="house_wash.basic" checked> Basic Rate ($/sq ft exterior)</label>
                 <div class="input-wrap"><span class="prefix">$</span><input type="number" data-rate="house_wash.basic" step="0.01" min="0" /></div>
               </div>
               <div class="field">
-                <label>Standard Rate</label>
+                <label><input type="checkbox" class="sub-toggle" data-rate-toggle="house_wash.standard" checked> Standard Rate</label>
                 <div class="input-wrap"><span class="prefix">$</span><input type="number" data-rate="house_wash.standard" step="0.01" min="0" /></div>
               </div>
               <div class="field">
-                <label>Premium Rate</label>
+                <label><input type="checkbox" class="sub-toggle" data-rate-toggle="house_wash.premium" checked> Premium Rate</label>
                 <div class="input-wrap"><span class="prefix">$</span><input type="number" data-rate="house_wash.premium" step="0.01" min="0" /></div>
               </div>
             </div>
@@ -710,15 +715,15 @@
             </div>
             <div class="row-3">
               <div class="field">
-                <label>Light Rate ($/sq ft)</label>
+                <label><input type="checkbox" class="sub-toggle" data-rate-toggle="driveway.light" checked> Light Rate ($/sq ft)</label>
                 <div class="input-wrap"><span class="prefix">$</span><input type="number" data-rate="driveway.light" step="0.01" min="0" /></div>
               </div>
               <div class="field">
-                <label>Standard Rate</label>
+                <label><input type="checkbox" class="sub-toggle" data-rate-toggle="driveway.standard" checked> Standard Rate</label>
                 <div class="input-wrap"><span class="prefix">$</span><input type="number" data-rate="driveway.standard" step="0.01" min="0" /></div>
               </div>
               <div class="field">
-                <label>Heavy Rate</label>
+                <label><input type="checkbox" class="sub-toggle" data-rate-toggle="driveway.heavy" checked> Heavy Rate</label>
                 <div class="input-wrap"><span class="prefix">$</span><input type="number" data-rate="driveway.heavy" step="0.01" min="0" /></div>
               </div>
             </div>
@@ -738,15 +743,15 @@
             </div>
             <div class="row-3">
               <div class="field">
-                <label>Light Rate ($/sq ft)</label>
+                <label><input type="checkbox" class="sub-toggle" data-rate-toggle="roof.light" checked> Light Rate ($/sq ft)</label>
                 <div class="input-wrap"><span class="prefix">$</span><input type="number" data-rate="roof.light" step="0.01" min="0" /></div>
               </div>
               <div class="field">
-                <label>Standard Rate</label>
+                <label><input type="checkbox" class="sub-toggle" data-rate-toggle="roof.standard" checked> Standard Rate</label>
                 <div class="input-wrap"><span class="prefix">$</span><input type="number" data-rate="roof.standard" step="0.01" min="0" /></div>
               </div>
               <div class="field">
-                <label>Heavy Rate</label>
+                <label><input type="checkbox" class="sub-toggle" data-rate-toggle="roof.heavy" checked> Heavy Rate</label>
                 <div class="input-wrap"><span class="prefix">$</span><input type="number" data-rate="roof.heavy" step="0.01" min="0" /></div>
               </div>
             </div>
@@ -766,15 +771,15 @@
             </div>
             <div class="row-3">
               <div class="field">
-                <label>Cleaning ($/linear ft)</label>
+                <label><input type="checkbox" class="sub-toggle" data-rate-toggle="gutters.cleaning" checked> Cleaning ($/linear ft)</label>
                 <div class="input-wrap"><span class="prefix">$</span><input type="number" data-rate="gutters.cleaning" step="0.05" min="0" /></div>
               </div>
               <div class="field">
-                <label>Brightening</label>
+                <label><input type="checkbox" class="sub-toggle" data-rate-toggle="gutters.brightening" checked> Brightening</label>
                 <div class="input-wrap"><span class="prefix">$</span><input type="number" data-rate="gutters.brightening" step="0.05" min="0" /></div>
               </div>
               <div class="field">
-                <label>Both</label>
+                <label><input type="checkbox" class="sub-toggle" data-rate-toggle="gutters.both" checked> Both</label>
                 <div class="input-wrap"><span class="prefix">$</span><input type="number" data-rate="gutters.both" step="0.05" min="0" /></div>
               </div>
             </div>
@@ -794,35 +799,35 @@
             </div>
             <p class="settings-desc" style="margin-bottom: 12px;">Set price ranges for each truck load size</p>
             <div class="junk-tier" data-tier="single">
-              <div class="tier-label">Single Item</div>
+              <div class="tier-label"><input type="checkbox" class="sub-toggle" data-junk-toggle="single" checked> Single Item</div>
               <div class="row-2">
                 <div class="field"><label>Low</label><div class="input-wrap"><span class="prefix">$</span><input type="number" data-junk="single.low" step="5" min="0" /></div></div>
                 <div class="field"><label>High</label><div class="input-wrap"><span class="prefix">$</span><input type="number" data-junk="single.high" step="5" min="0" /></div></div>
               </div>
             </div>
             <div class="junk-tier" data-tier="quarter">
-              <div class="tier-label">1/4 Truck Load</div>
+              <div class="tier-label"><input type="checkbox" class="sub-toggle" data-junk-toggle="quarter" checked> 1/4 Truck Load</div>
               <div class="row-2">
                 <div class="field"><label>Low</label><div class="input-wrap"><span class="prefix">$</span><input type="number" data-junk="quarter.low" step="5" min="0" /></div></div>
                 <div class="field"><label>High</label><div class="input-wrap"><span class="prefix">$</span><input type="number" data-junk="quarter.high" step="5" min="0" /></div></div>
               </div>
             </div>
             <div class="junk-tier" data-tier="half">
-              <div class="tier-label">1/2 Truck Load</div>
+              <div class="tier-label"><input type="checkbox" class="sub-toggle" data-junk-toggle="half" checked> 1/2 Truck Load</div>
               <div class="row-2">
                 <div class="field"><label>Low</label><div class="input-wrap"><span class="prefix">$</span><input type="number" data-junk="half.low" step="5" min="0" /></div></div>
                 <div class="field"><label>High</label><div class="input-wrap"><span class="prefix">$</span><input type="number" data-junk="half.high" step="5" min="0" /></div></div>
               </div>
             </div>
             <div class="junk-tier" data-tier="threequarter">
-              <div class="tier-label">3/4 Truck Load</div>
+              <div class="tier-label"><input type="checkbox" class="sub-toggle" data-junk-toggle="threequarter" checked> 3/4 Truck Load</div>
               <div class="row-2">
                 <div class="field"><label>Low</label><div class="input-wrap"><span class="prefix">$</span><input type="number" data-junk="threequarter.low" step="5" min="0" /></div></div>
                 <div class="field"><label>High</label><div class="input-wrap"><span class="prefix">$</span><input type="number" data-junk="threequarter.high" step="5" min="0" /></div></div>
               </div>
             </div>
             <div class="junk-tier" data-tier="full">
-              <div class="tier-label">Full Truck Load</div>
+              <div class="tier-label"><input type="checkbox" class="sub-toggle" data-junk-toggle="full" checked> Full Truck Load</div>
               <div class="row-2">
                 <div class="field"><label>Low</label><div class="input-wrap"><span class="prefix">$</span><input type="number" data-junk="full.low" step="5" min="0" /></div></div>
                 <div class="field"><label>High</label><div class="input-wrap"><span class="prefix">$</span><input type="number" data-junk="full.high" step="5" min="0" /></div></div>
@@ -839,30 +844,30 @@
             <h4 style="color:var(--accent);margin:12px 0 6px">Exterior Only</h4>
             <div class="row-3">
               <div class="field">
-                <label>Light</label>
+                <label><input type="checkbox" class="sub-toggle" data-rate-toggle="window_cleaning.exterior_light" checked> Light</label>
                 <div class="input-wrap"><span class="prefix">$</span><input type="number" step="0.5" data-rate="window_cleaning.exterior_light" value="5"></div>
               </div>
               <div class="field">
-                <label>Standard</label>
+                <label><input type="checkbox" class="sub-toggle" data-rate-toggle="window_cleaning.exterior_standard" checked> Standard</label>
                 <div class="input-wrap"><span class="prefix">$</span><input type="number" step="0.5" data-rate="window_cleaning.exterior_standard" value="7"></div>
               </div>
               <div class="field">
-                <label>Heavy</label>
+                <label><input type="checkbox" class="sub-toggle" data-rate-toggle="window_cleaning.exterior_heavy" checked> Heavy</label>
                 <div class="input-wrap"><span class="prefix">$</span><input type="number" step="0.5" data-rate="window_cleaning.exterior_heavy" value="10"></div>
               </div>
             </div>
             <h4 style="color:var(--accent);margin:12px 0 6px">Interior + Exterior</h4>
             <div class="row-3">
               <div class="field">
-                <label>Light</label>
+                <label><input type="checkbox" class="sub-toggle" data-rate-toggle="window_cleaning.both_light" checked> Light</label>
                 <div class="input-wrap"><span class="prefix">$</span><input type="number" step="0.5" data-rate="window_cleaning.both_light" value="8"></div>
               </div>
               <div class="field">
-                <label>Standard</label>
+                <label><input type="checkbox" class="sub-toggle" data-rate-toggle="window_cleaning.both_standard" checked> Standard</label>
                 <div class="input-wrap"><span class="prefix">$</span><input type="number" step="0.5" data-rate="window_cleaning.both_standard" value="12"></div>
               </div>
               <div class="field">
-                <label>Heavy</label>
+                <label><input type="checkbox" class="sub-toggle" data-rate-toggle="window_cleaning.both_heavy" checked> Heavy</label>
                 <div class="input-wrap"><span class="prefix">$</span><input type="number" step="0.5" data-rate="window_cleaning.both_heavy" value="16"></div>
               </div>
             </div>
@@ -881,15 +886,15 @@
             <p class="settings-desc">Per linear foot rates by guard type</p>
             <div class="row-3">
               <div class="field">
-                <label>Mesh Screen ($/ln ft)</label>
+                <label><input type="checkbox" class="sub-toggle" data-rate-toggle="gutter_guards.mesh" checked> Mesh Screen ($/ln ft)</label>
                 <div class="input-wrap"><span class="prefix">$</span><input type="number" step="0.5" data-rate="gutter_guards.mesh" value="6"></div>
               </div>
               <div class="field">
-                <label>Micro-Mesh</label>
+                <label><input type="checkbox" class="sub-toggle" data-rate-toggle="gutter_guards.micro_mesh" checked> Micro-Mesh</label>
                 <div class="input-wrap"><span class="prefix">$</span><input type="number" step="0.5" data-rate="gutter_guards.micro_mesh" value="9"></div>
               </div>
               <div class="field">
-                <label>Solid Cover</label>
+                <label><input type="checkbox" class="sub-toggle" data-rate-toggle="gutter_guards.solid" checked> Solid Cover</label>
                 <div class="input-wrap"><span class="prefix">$</span><input type="number" step="0.5" data-rate="gutter_guards.solid" value="12"></div>
               </div>
             </div>
@@ -1513,7 +1518,28 @@
       const val = c.internal?.[key];
       input.value = val !== undefined ? val : '';
     });
-  }
+  
+    // Populate sub-option toggles
+    document.querySelectorAll('[data-rate-toggle]').forEach(cb => {
+      const parts = cb.getAttribute('data-rate-toggle').split('.');
+      const svc = parts[0], rate = parts[1];
+      if (c.services[svc] && c.services[svc].enabled_rates) {
+        cb.checked = c.services[svc].enabled_rates[rate] !== false;
+      } else {
+        cb.checked = true; // default on if not set
+      }
+      updateFieldDimming(cb);
+    });
+    document.querySelectorAll('[data-junk-toggle]').forEach(cb => {
+      const tier = cb.getAttribute('data-junk-toggle');
+      if (c.services.junk && c.services.junk.enabled_tiers) {
+        cb.checked = c.services.junk.enabled_tiers[tier] !== false;
+      } else {
+        cb.checked = true;
+      }
+      updateTierDimming(cb);
+    });
+}
 
   function updateServiceDisabledStyle(svc, enabled) {
     const section = document.querySelector(`.service-section[data-service="${svc}"]`);
@@ -1584,7 +1610,22 @@
     });
 
     return c;
-  }
+  
+    // Collect sub-option toggle states
+    document.querySelectorAll('[data-rate-toggle]').forEach(cb => {
+      const parts = cb.getAttribute('data-rate-toggle').split('.');
+      const svc = parts[0], rate = parts[1];
+      if (c.services[svc]) {
+        if (!c.services[svc].enabled_rates) c.services[svc].enabled_rates = {};
+        c.services[svc].enabled_rates[rate] = cb.checked;
+      }
+    });
+    document.querySelectorAll('[data-junk-toggle]').forEach(cb => {
+      const tier = cb.getAttribute('data-junk-toggle');
+      if (!c.services.junk.enabled_tiers) c.services.junk.enabled_tiers = {};
+      c.services.junk.enabled_tiers[tier] = cb.checked;
+    });
+}
 
   function markDirty() {
     settingsDirty = true;
@@ -1715,6 +1756,7 @@
     function connectJobber() {
       window.open('/api/jobber-auth', '_blank', 'width=600,height=700');
     }
+    window.connectJobber = connectJobber;
 
     async function sendToJobber(quoteId) {
       const btn = event.target;
@@ -1797,6 +1839,30 @@
       window.history.replaceState({}, '', '/admin.html');
     }
     checkJobberStatus();
+
+  // Sub-option toggle dimming
+  function updateFieldDimming(cb) {
+    const field = cb.closest('.field');
+    if (field) {
+      field.classList.toggle('disabled-tier', !cb.checked);
+    }
+  }
+  function updateTierDimming(cb) {
+    const card = cb.closest('.tier-card') || cb.closest('[style*="border-left"]') || cb.parentElement.parentElement;
+    if (card) {
+      card.classList.toggle('disabled-tier', !cb.checked);
+    }
+  }
+  // Wire up sub-toggle change events
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.sub-toggle').forEach(cb => {
+      cb.addEventListener('change', () => {
+        if (cb.hasAttribute('data-rate-toggle')) updateFieldDimming(cb);
+        if (cb.hasAttribute('data-junk-toggle')) updateTierDimming(cb);
+        markDirty();
+      });
+    });
+  });
 </script>
 </body>
 </html>
