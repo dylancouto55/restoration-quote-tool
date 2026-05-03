@@ -815,6 +815,75 @@
               </div>
             </div>
           </div>
+          <!-- Window Cleaning -->
+          <div class="service-section" data-service="window_cleaning">
+            <div class="service-header">
+              <h3>🪟 Window Cleaning</h3>
+              <label class="switch"><input type="checkbox" checked data-toggle="window_cleaning"><span class="slider"></span></label>
+            </div>
+            <p class="settings-desc">Per-window rates by cleaning type and condition</p>
+            <h4 style="color:var(--accent);margin:12px 0 6px">Exterior Only</h4>
+            <div class="row-3">
+              <div class="field">
+                <label>Light</label>
+                <div class="input-wrap"><span class="prefix">$</span><input type="number" step="0.5" data-rate="window_cleaning.exterior_light" value="5"></div>
+              </div>
+              <div class="field">
+                <label>Standard</label>
+                <div class="input-wrap"><span class="prefix">$</span><input type="number" step="0.5" data-rate="window_cleaning.exterior_standard" value="7"></div>
+              </div>
+              <div class="field">
+                <label>Heavy</label>
+                <div class="input-wrap"><span class="prefix">$</span><input type="number" step="0.5" data-rate="window_cleaning.exterior_heavy" value="10"></div>
+              </div>
+            </div>
+            <h4 style="color:var(--accent);margin:12px 0 6px">Interior + Exterior</h4>
+            <div class="row-3">
+              <div class="field">
+                <label>Light</label>
+                <div class="input-wrap"><span class="prefix">$</span><input type="number" step="0.5" data-rate="window_cleaning.both_light" value="8"></div>
+              </div>
+              <div class="field">
+                <label>Standard</label>
+                <div class="input-wrap"><span class="prefix">$</span><input type="number" step="0.5" data-rate="window_cleaning.both_standard" value="12"></div>
+              </div>
+              <div class="field">
+                <label>Heavy</label>
+                <div class="input-wrap"><span class="prefix">$</span><input type="number" step="0.5" data-rate="window_cleaning.both_heavy" value="16"></div>
+              </div>
+            </div>
+            <div class="field">
+              <label>Minimum Job Price</label>
+              <div class="input-wrap"><span class="prefix">$</span><input type="number" step="1" data-min="window_cleaning" value="150"></div>
+            </div>
+          </div>
+
+          <!-- Gutter Guards -->
+          <div class="service-section" data-service="gutter_guards">
+            <div class="service-header">
+              <h3>🛡️ Gutter Guards</h3>
+              <label class="switch"><input type="checkbox" checked data-toggle="gutter_guards"><span class="slider"></span></label>
+            </div>
+            <p class="settings-desc">Per linear foot rates by guard type</p>
+            <div class="row-3">
+              <div class="field">
+                <label>Mesh Screen ($/ln ft)</label>
+                <div class="input-wrap"><span class="prefix">$</span><input type="number" step="0.5" data-rate="gutter_guards.mesh" value="6"></div>
+              </div>
+              <div class="field">
+                <label>Micro-Mesh</label>
+                <div class="input-wrap"><span class="prefix">$</span><input type="number" step="0.5" data-rate="gutter_guards.micro_mesh" value="9"></div>
+              </div>
+              <div class="field">
+                <label>Solid Cover</label>
+                <div class="input-wrap"><span class="prefix">$</span><input type="number" step="0.5" data-rate="gutter_guards.solid" value="12"></div>
+              </div>
+            </div>
+            <div class="field">
+              <label>Minimum Job Price</label>
+              <div class="input-wrap"><span class="prefix">$</span><input type="number" step="1" data-min="gutter_guards" value="300"></div>
+            </div>
+          </div>
         </div>
 
         <!-- Quote Behavior -->
