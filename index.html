@@ -17,9 +17,7 @@
     --bad: #fca5a5;
     --text: #e6edf3;
     --muted: #8b96a5;
-  },
-        { id: 'window_cleaning', icon: '🪟', title: 'Window Cleaning', desc: 'Interior and exterior window washing' },
-        { id: 'gutter_guards',    icon: '🛡️', title: 'Gutter Guards',   desc: 'Guard installation to prevent clogs' }
+  }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -780,7 +778,9 @@
     { id: 'driveway',   icon: '🛣️', title: 'Driveway',   desc: 'Concrete, pavers, and walkways' },
     { id: 'roof',       icon: '🏚️', title: 'Roof Wash',  desc: 'Remove black streaks and algae' },
     { id: 'gutters',    icon: '🪣', title: 'Gutters',    desc: 'Clean out and exterior brightening' },
-    { id: 'junk',       icon: '🗑️', title: 'Junk Removal', desc: 'Hauling and disposal' }
+    { id: 'junk',       icon: '🗑️', title: 'Junk Removal', desc: 'Hauling and disposal' },
+        { id: 'window_cleaning', icon: '🪟', title: 'Window Cleaning', desc: 'Interior and exterior window washing' },
+        { id: 'gutter_guards',    icon: '🛡️', title: 'Gutter Guards',   desc: 'Guard installation to prevent clogs' }
   ];
 
   const selectedServices = new Set();
@@ -1309,7 +1309,7 @@ updateQuote();
       document.querySelectorAll('.biz').forEach(el => el.textContent = CONFIG.business.name);
     }
     if (CONFIG.business?.phone) {
-      // Update any phone displaysh
+      // Update any phone displays
       document.querySelectorAll('footer').forEach(el => {
         const phoneSpan = el.querySelector('div:not(.biz)');
         if (phoneSpan) phoneSpan.innerHTML = `${CONFIG.business.phone} · Licensed &amp; Insured`;
