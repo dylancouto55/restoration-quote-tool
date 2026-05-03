@@ -17,7 +17,9 @@
     --bad: #fca5a5;
     --text: #e6edf3;
     --muted: #8b96a5;
-  }
+  },
+        { id: 'window_cleaning', icon: '🪟', title: 'Window Cleaning', desc: 'Interior and exterior window washing' },
+        { id: 'gutter_guards',    icon: '🛡️', title: 'Gutter Guards',   desc: 'Guard installation to prevent clogs' }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -419,7 +421,14 @@
     vertical-align: -2px;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
-</style>
+
+    .street-view-container { margin-top: 12px; border-radius: 10px; overflow: hidden; display: none; }
+    .street-view-container.show { display: block; }
+    .street-view-container img { width: 100%; height: auto; display: block; border-radius: 10px; }
+    .street-view-container .sv-label { font-size: 11px; color: var(--muted); text-align: center; margin-top: 6px; }
+    body.embed-light .street-view-container .sv-label { color: #9ca3af; }
+
+  </style>
 </head>
 <body>
 <div class="container">
@@ -443,6 +452,10 @@
       </div>
       <div class="hint">We'll auto-fill property info to give you an accurate quote</div>
       <div class="lookup-status" id="lookupStatus"></div>
+      <div class="street-view-container" id="streetViewContainer">
+        <img id="streetViewImg" alt="Street view of property" />
+        <div class="sv-label">Google Street View</div>
+      </div>
     </div>
   </div>
 
@@ -568,6 +581,49 @@
           <option value="full">Full Truck Load ($550-750)</option>
         </select>
       </div>
+    <div class="service-detail" id="detail-window_cleaning">
+      <h3>Window Cleaning Details</h3>
+      <div class="row-2">
+        <div class="field">
+          <label for="window_count">Number of Windows</label>
+          <input type="number" id="window_count" value="15" min="1" step="1" />
+        </div>
+        <div class="field">
+          <label for="window_type">Cleaning Type</label>
+          <select id="window_type">
+            <option value="exterior">Exterior Only</option>
+            <option value="both" selected>Interior + Exterior</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Window Condition</label>
+        <div class="preset-row" data-service="windows">
+          <button type="button" class="preset" data-level="light">Light Clean</button>
+          <button type="button" class="preset active" data-level="standard">Standard</button>
+          <button type="button" class="preset" data-level="heavy">Heavy Buildup</button>
+        </div>
+      </div>
+    </div>
+    <div class="service-detail" id="detail-gutter_guards">
+      <h3>Gutter Guard Installation</h3>
+      <div class="field">
+        <label for="guard_lnft">Linear Footage</label>
+        <div class="input-wrap has-suffix">
+          <input type="number" id="guard_lnft" value="120" min="0" step="10" />
+          <span class="suffix">ln ft</span>
+        </div>
+        <div class="hint">Same as your gutter length at the roofline</div>
+      </div>
+      <div class="field">
+        <label>Guard Type</label>
+        <div class="preset-row" data-service="gutter_guards">
+          <button type="button" class="preset" data-level="mesh">Mesh Screen</button>
+          <button type="button" class="preset active" data-level="micro_mesh">Micro-Mesh</button>
+          <button type="button" class="preset" data-level="solid">Solid Cover</button>
+        </div>
+      </div>
+    </div>
       <div class="field">
         <label for="junk_description">What needs removed?</label>
         <textarea id="junk_description" placeholder="Old furniture, appliances, yard debris, etc."></textarea>
@@ -687,7 +743,20 @@
         half:         { low: 250, high: 400, label: '1/2 Truck' },
         threequarter: { low: 400, high: 550, label: '3/4 Truck' },
         full:         { low: 550, high: 750, label: 'Full Truck' }
-      }}
+      }},
+      window_cleaning: {
+        enabled: true,
+        min_price: 150,
+        rates: {
+          exterior_light: 5, exterior_standard: 7, exterior_heavy: 10,
+          both_light: 8, both_standard: 12, both_heavy: 16
+        }
+      },
+      gutter_guards: {
+        enabled: true,
+        min_price: 300,
+        rates: { mesh: 6, micro_mesh: 9, solid: 12 }
+      }
     }
   };
 
@@ -719,7 +788,9 @@
     house: 'standard',
     driveway: 'standard',
     roof: 'standard',
-    gutters: 'cleaning'
+    gutters: 'cleaning',
+    windows: 'standard',
+    gutter_guards: 'micro_mesh'
   };
 
   // ===== Pricing Logic =====
@@ -782,6 +853,31 @@
     const tiers = CONFIG.services.junk?.tiers || {};
     const r = tiers[volume] || tiers.quarter || { low: 150, high: 250, label: '1/4 Truck' };
     return { low: r.low, high: r.high, label: 'Junk Removal', details: r.label };
+  }
+
+  function priceWindows(count, type, level) {
+    const key = type + '_' + level;
+    const rate = CONFIG.services.window_cleaning?.rates?.[key] || 12;
+    const minPrice = CONFIG.services.window_cleaning?.min_price || 150;
+    const base = Math.max(count * rate, minPrice);
+    return {
+      low: Math.round(base * (1 - CONFIG.behavior.price_range_spread_low)),
+      high: Math.round(base * (1 + CONFIG.behavior.price_range_spread_high)),
+      label: 'Window Cleaning',
+      details: count + ' windows, ' + (type === 'both' ? 'int+ext' : 'ext only') + ', ' + level
+    };
+  }
+
+  function priceGutterGuards(lnft, type) {
+    const rate = CONFIG.services.gutter_guards?.rates?.[type] || 9;
+    const minPrice = CONFIG.services.gutter_guards?.min_price || 300;
+    const base = Math.max(lnft * rate, minPrice);
+    return {
+      low: Math.round(base * (1 - CONFIG.behavior.price_range_spread_low)),
+      high: Math.round(base * (1 + CONFIG.behavior.price_range_spread_high)),
+      label: 'Gutter Guards',
+      details: lnft + ' ln ft, ' + type.replace('_', '-')
+    };
   }
 
   // ===== Build Service Cards =====
@@ -913,6 +1009,33 @@
       });
     }
 
+    if (selectedServices.has('window_cleaning')) {
+      const count = +$('window_count').value || 15;
+      const type = $('window_type').value;
+      const p = priceWindows(count, type, serviceLevels.windows);
+      lines.push(p);
+      totalLow += p.low;
+      totalHigh += p.high;
+      servicesData.push({
+        type: 'window_cleaning', name: p.label, details: p.details,
+        window_count: count, window_type: type, level: serviceLevels.windows,
+        price_low: p.low, price_high: p.high
+      });
+    }
+
+    if (selectedServices.has('gutter_guards')) {
+      const lnft = +$('guard_lnft').value || 120;
+      const p = priceGutterGuards(lnft, serviceLevels.gutter_guards);
+      lines.push(p);
+      totalLow += p.low;
+      totalHigh += p.high;
+      servicesData.push({
+        type: 'gutter_guards', name: p.label, details: p.details,
+        lnft: lnft, level: serviceLevels.gutter_guards,
+        price_low: p.low, price_high: p.high
+      });
+    }
+
     // Multi-service discount based on config
     const discountPct = CONFIG.behavior.bundle_discount_percent || 0;
     const threshold = CONFIG.behavior.bundle_discount_threshold || 3;
@@ -975,7 +1098,7 @@
   }
 
   // Listen to all input changes
-  ['house_sqft', 'house_stories', 'driveway_sqft', 'roof_sqft', 'gutter_lnft', 'junk_volume', 'junk_description']
+  ['house_sqft', 'house_stories', 'driveway_sqft', 'roof_sqft', 'gutter_lnft', 'junk_volume', 'junk_description', 'window_count', 'window_type', 'guard_lnft']
     .forEach(id => {
       $(id).addEventListener('input', updateQuote);
       $(id).addEventListener('change', updateQuote);
@@ -1020,7 +1143,24 @@
         $('gutter_lnft').value = Math.round(sideLen * 4);
 
         window._propertyData = data;
-        updateQuote();
+        
+      // Show Street View image of the property
+      try {
+        const svResp = await fetch('/api/streetview?address=' + encodeURIComponent(address));
+        if (svResp.ok) {
+          const blob = await svResp.blob();
+          $('streetViewImg').src = URL.createObjectURL(blob);
+          $('streetViewContainer').classList.add('show');
+        }
+      } catch (svErr) {
+        console.warn('Street View not available');
+      }
+      // Sync gutter guard linear footage from gutter value
+      if ($('gutter_lnft') && $('guard_lnft')) {
+        $('guard_lnft').value = $('gutter_lnft').value;
+      }
+
+updateQuote();
 
         status.className = 'lookup-status show success';
         let msg = `<strong>✓ ${data.sqft.toLocaleString()} sq ft</strong>`;
@@ -1169,7 +1309,7 @@
       document.querySelectorAll('.biz').forEach(el => el.textContent = CONFIG.business.name);
     }
     if (CONFIG.business?.phone) {
-      // Update any phone displays
+      // Update any phone displaysh
       document.querySelectorAll('footer').forEach(el => {
         const phoneSpan = el.querySelector('div:not(.biz)');
         if (phoneSpan) phoneSpan.innerHTML = `${CONFIG.business.phone} · Licensed &amp; Insured`;
