@@ -1301,7 +1301,74 @@ updateQuote();
     }
   });
 
-  // ===== Init =====
+  // ===== Apply Toggle States from Admin Settings =====
+    const presetToConfig = {
+      house: 'house_wash',
+      driveway: 'driveway',
+      roof: 'roof',
+      gutters: 'gutters',
+      windows: 'window_cleaning',
+      gutter_guards: 'gutter_guards'
+    };
+
+    function applyToggleStates() {
+      document.querySelectorAll('.preset-row').forEach(row => {
+        const service = row.dataset.service;
+        const configKey = presetToConfig[service];
+        if (!configKey || !CONFIG.services[configKey]) return;
+        const enabledRates = CONFIG.services[configKey].enabled_rates;
+        if (!enabledRates) return;
+
+        row.querySelectorAll('.preset').forEach(btn => {
+          let level = btn.dataset.level;
+          if (service === 'windows') {
+            const type = $('window_type').value;
+            level = type + '_' + level;
+          }
+          if (enabledRates[level] === false) {
+            btn.style.display = 'none';
+          } else {
+            btn.style.display = '';
+          }
+        });
+
+        const activeBtn = row.querySelector('.preset.active');
+        if (activeBtn && activeBtn.style.display === 'none') {
+          const firstVisible = Array.from(row.querySelectorAll('.preset')).find(b => b.style.display !== 'none');
+          if (firstVisible) {
+            activeBtn.classList.remove('active');
+            firstVisible.classList.add('active');
+            serviceLevels[service] = firstVisible.dataset.level;
+          }
+        }
+      });
+
+      const junkSelect = $('junk_volume');
+      const enabledTiers = CONFIG.services.junk?.enabled_tiers;
+      if (junkSelect && enabledTiers) {
+        let needReselect = false;
+        Array.from(junkSelect.options).forEach(opt => {
+          if (enabledTiers[opt.value] === false) {
+            opt.style.display = 'none';
+            opt.disabled = true;
+            if (opt.selected) needReselect = true;
+          } else {
+            opt.style.display = '';
+            opt.disabled = false;
+          }
+        });
+        if (needReselect) {
+          const first = Array.from(junkSelect.options).find(o => !o.disabled);
+          if (first) junkSelect.value = first.value;
+        }
+      }
+
+      updateQuote();
+    }
+
+    $('window_type').addEventListener('change', () => applyToggleStates());
+
+    // ===== Init =====
   async function init() {
     await loadConfig();
 
@@ -1318,6 +1385,7 @@ updateQuote();
     }
 
     buildServiceGrid();
+      applyToggleStates();
     // Pre-select house wash by default if enabled
     if (CONFIG.services.house_wash?.enabled !== false) {
       toggleService('house_wash');
