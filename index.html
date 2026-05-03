@@ -1124,6 +1124,22 @@
     // Update measurement buttons with this address
     updateMeasurementLinks(address);
 
+    // Show Street View image of the property
+      try {
+        const svResp = await fetch('/api/streetview?address=' + encodeURIComponent(address));
+        if (svResp.ok) {
+          const blob = await svResp.blob();
+          $('streetViewImg').src = URL.createObjectURL(blob);
+          $('streetViewContainer').classList.add('show');
+        }
+      } catch (svErr) {
+        console.warn('Street View not available');
+      }
+      // Sync gutter guard linear footage from gutter value
+      if ($('gutter_lnft') && $('guard_lnft')) {
+        $('guard_lnft').value = $('gutter_lnft').value;
+      }
+
     try {
       const response = await fetch(`/api/lookup?address=${encodeURIComponent(address)}`);
       const data = await response.json();
@@ -1143,22 +1159,7 @@
         $('gutter_lnft').value = Math.round(sideLen * 4);
 
         window._propertyData = data;
-        
-      // Show Street View image of the property
-      try {
-        const svResp = await fetch('/api/streetview?address=' + encodeURIComponent(address));
-        if (svResp.ok) {
-          const blob = await svResp.blob();
-          $('streetViewImg').src = URL.createObjectURL(blob);
-          $('streetViewContainer').classList.add('show');
-        }
-      } catch (svErr) {
-        console.warn('Street View not available');
-      }
-      // Sync gutter guard linear footage from gutter value
-      if ($('gutter_lnft') && $('guard_lnft')) {
-        $('guard_lnft').value = $('gutter_lnft').value;
-      }
+
 
 updateQuote();
 
