@@ -1154,11 +1154,30 @@
         // Estimate roof sqft as ~1.1x footprint
         const footprint = data.sqft / (data.stories || 2);
         $('roof_sqft').value = Math.round(footprint * 1.1 / 50) * 50;
-        // Estimate gutter linear feet as perimeter
-        const sideLen = Math.sqrt(footprint);
-        $('gutter_lnft').value = Math.round(sideLen * 4);
+        // Estimate gutter linear feet (perimeter × 0.75 — gutters don't run on gable ends)
+            const ratio = 1.3; // typical house length:width ratio
+            const width = Math.sqrt(footprint / ratio);
+            const length = width * ratio;
+            const perimeter = 2 * (width + length);
+            $('gutter_lnft').value = Math.round(perimeter * 0.75);
+            $('guard_lnft').value = $('gutter_lnft').value;
 
-        window._propertyData = data;
+        // Estimate window count from property data
+            if (data.bedrooms || data.sqft) {
+              let winEst;
+              if (data.bedrooms) {
+                const beds = data.bedrooms || 3;
+                const baths = data.bathrooms || Math.max(1, Math.floor(beds * 0.75));
+                const baseLiving = Math.round(data.sqft / 400); // common area windows
+                winEst = (beds * 2) + baths + baseLiving;
+              } else {
+                winEst = Math.round(data.sqft / 200); // fallback: ~1 window per 200 sqft
+              }
+              winEst = Math.max(8, Math.min(winEst, 60)); // clamp to reasonable range
+              $('window_count').value = winEst;
+            }
+
+            window._propertyData = data;
 
 
 updateQuote();
