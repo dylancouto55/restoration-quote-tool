@@ -1167,7 +1167,7 @@
               let winEst;
               if (data.bedrooms) {
                 const beds = data.bedrooms || 3;
-                const baths = data.bathrooms || Math.max(1, Math.floor(beds * 0.75));
+                const baths = Math.round(data.bathrooms) || Math.max(1, Math.floor(beds * 0.75));
                 const baseLiving = Math.round(data.sqft / 400); // common area windows
                 winEst = (beds * 2) + baths + baseLiving;
               } else {
