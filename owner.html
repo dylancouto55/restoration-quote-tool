@@ -201,7 +201,7 @@
           <h3>House Wash</h3>
           <div class="row-2">
             <div class="field"><label for="house_sqft">Living Sq Ft</label><div class="input-wrap has-suffix"><input type="number" id="house_sqft" value="2000" min="0" step="50" /><span class="suffix">sq ft</span></div></div>
-            <div class="field"><label for="house_stories">Stories</label><select id="house_stories"><option value="1">1 Story</option><option value="1.5">1.5 Story</option><option value="2" selected>2 Story</option><option value="3">3 Story</option></select></div>
+            <div class="field"><label for="house_stories">Stories</label><select id="house_stories"><option value="1" selected>1 Story</option><option value="1.5">1.5 Story</option><option value="2">2 Story</option><option value="3">3 Story</option></select></div>
           </div>
           <div class="field"><label>Wash Level</label><div class="preset-row" data-service="house"><button type="button" class="preset" data-level="basic">Basic</button><button type="button" class="preset active" data-level="standard">Standard</button><button type="button" class="preset" data-level="premium">Premium</button></div></div>
         </div>
@@ -657,7 +657,7 @@ async function lookupAddress() {
     if (data.found && data.sqft) {
       $('house_sqft').value = data.sqft;
       if (data.stories) { const valid=[1,1.5,2,3]; $('house_stories').value = valid.reduce((p,c) => Math.abs(c-data.stories)<Math.abs(p-data.stories)?c:p); }
-      const footprint = data.sqft / (data.stories || 2);
+      const footprint = data.sqft / (data.stories || 1);
       $('roof_sqft').value = Math.round(footprint * 1.1 / 50) * 50;
       const ratio = 1.3; const w = Math.sqrt(footprint/ratio); const l = w*ratio;
       $('gutter_lnft').value = Math.round(2*(w+l)*0.75);
@@ -707,7 +707,7 @@ $('newQuoteBtn').addEventListener('click', () => {
   $('address').value = '';
   $('lookupStatus').className = 'lookup-status';
   $('streetViewContainer').classList.remove('show');
-  $('house_sqft').value = 2000; $('house_stories').value = 2;
+  $('house_sqft').value = 2000; $('house_stories').value = 1;
   $('driveway_sqft').value = 600; $('roof_sqft').value = 1800;
   $('gutter_lnft').value = 120; $('guard_lnft').value = 120;
   $('window_count').value = 15; $('window_type').value = 'exterior';
