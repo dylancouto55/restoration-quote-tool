@@ -748,11 +748,106 @@ $('copyQuoteBtn').addEventListener('click', () => {
   });
 });
 
+// ===== Jobber Integration =====
+let _jobberClientId = null;
+
+async function checkJobberConnection() {
+  try {
+    const res = await fetch('/api/jobber-status');
+    const data = await res.json();
+    if (!data.connected) {
+      $('jobberSection').style.display = 'none';
+    }
+  } catch (e) {
+    $('jobberSection').style.display = 'none';
+  }
+}
+
+async function sendToJobber(action) {
+  const btn = action === 'createClient' ? $('jobberClientBtn') : $('jobberQuoteBtn');
+  const statusEl = $('jobberStatusMsg');
+  const origText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = action === 'createClient' ? 'Creating...' : 'Sending...';
+  btn.className = btn.className.replace(' success', '').replace(' error', '');
+  statusEl.textContent = '';
+
+  try {
+    const address = $('address').value.trim();
+    const payload = {
+      action: action,
+      firstName: $('clientFirstName').value.trim() || 'Property',
+      lastName: $('clientLastName').value.trim() || 'Owner',
+      email: $('clientEmail').value.trim(),
+      phone: $('clientPhone').value.trim(),
+      address: address,
+      city: '',
+      state: 'MI',
+      zip: '',
+      notes: $('jobNotes').value.trim(),
+    };
+
+    if (action === 'createQuote' && _jobberClientId) {
+      payload.clientId = _jobberClientId;
+    }
+
+    if (action === 'createQuote') {
+      payload.services = [];
+      payload.totalPrice = 0;
+      document.querySelectorAll('.service-card.selected').forEach(card => {
+        const key = card.dataset.service;
+        const label = card.querySelector('.service-name')?.textContent || key;
+        const priceEl = card.querySelector('.card-price');
+        const price = priceEl ? parseFloat(priceEl.textContent.replace(/[^0-9.]/g, '')) : 0;
+        if (price > 0) {
+          payload.services.push({ name: label, total: price, description: '' });
+          payload.totalPrice += price;
+        }
+      });
+    }
+
+    const res = await fetch('/api/jobber-send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed');
+
+    btn.classList.add('success');
+    if (action === 'createClient') {
+      _jobberClientId = data.clientId;
+      btn.textContent = 'Client Created';
+      statusEl.textContent = 'Client added to Jobber: ' + (data.clientName || '');
+    } else {
+      btn.textContent = 'Quote Sent';
+      statusEl.textContent = 'Quote #' + (data.quoteNumber || '') + ' created in Jobber';
+    }
+  } catch (err) {
+    btn.classList.add('error');
+    btn.textContent = 'Error';
+    statusEl.textContent = err.message;
+    setTimeout(() => {
+      btn.textContent = origText;
+      btn.className = btn.className.replace(' error', '');
+      btn.disabled = false;
+    }, 3000);
+    return;
+  }
+
+  setTimeout(() => {
+    btn.textContent = origText;
+    btn.className = btn.className.replace(' success', '');
+    btn.disabled = false;
+  }, 3000);
+}
+
 // ===== Init =====
 async function init() {
   await loadConfig();
   buildServiceGrid();
   updateQuote();
+  checkJobberConnection();
 }
 </script>
 </body>
