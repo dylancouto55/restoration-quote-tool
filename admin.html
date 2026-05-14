@@ -1811,7 +1811,14 @@
 
         const result = await res.json();
         if (result.success) {
-          btn.textContent = 'Sent to Jobber!';
+          if (action === 'createClient') {
+            btn.textContent = 'Client Created!';
+            if ($('jobberStatusMsg')) $('jobberStatusMsg').textContent = 'Client added to Jobber';
+            window._jobberClientId = result.clientId;
+          } else {
+            btn.textContent = 'Quote Sent!';
+            if ($('jobberStatusMsg')) $('jobberStatusMsg').textContent = 'Quote #' + (result.quoteNumber || '') + ' created in Jobber';
+          }
           btn.style.background = 'var(--good)';
           setTimeout(() => {
             btn.textContent = origText;
