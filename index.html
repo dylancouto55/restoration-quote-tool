@@ -478,9 +478,9 @@
         <div class="field">
           <label for="house_stories">Stories</label>
           <select id="house_stories">
-            <option value="1">1 Story</option>
+            <option value="1" selected>1 Story</option>
             <option value="1.5">1.5 Story</option>
-            <option value="2" selected>2 Story</option>
+            <option value="2">2 Story</option>
             <option value="3">3 Story</option>
           </select>
         </div>
@@ -939,7 +939,7 @@
 
     if (selectedServices.has('house_wash')) {
       const sqft = +$('house_sqft').value || 2000;
-      const stories = +$('house_stories').value || 2;
+      const stories = +$('house_stories').value || 1;
       const p = priceHouse(sqft, stories, serviceLevels.house);
       lines.push(p);
       totalLow += p.low;
@@ -1152,7 +1152,7 @@
           $('house_stories').value = closest;
         }
         // Estimate roof sqft as ~1.1x footprint
-        const footprint = data.sqft / (data.stories || 2);
+        const footprint = data.sqft / (data.stories || 1);
         $('roof_sqft').value = Math.round(footprint * 1.1 / 50) * 50;
         // Estimate gutter linear feet (perimeter × 0.75 — gutters don't run on gable ends)
             const ratio = 1.3; // typical house length:width ratio
