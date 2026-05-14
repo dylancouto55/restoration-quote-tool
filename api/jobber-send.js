@@ -91,107 +91,169 @@ export default async function handler(req, res) {
 
   try {
     const token = await getValidToken(supabase);
-    const quote = req.body;
+    const body = req.body;
+    const action = body.action || 'both'; // 'createClient', 'createQuote', or 'both'
 
-    // Step 1: Create the client
-    const clientData = await jobberGraphQL(token, `
-      mutation CreateClient($input: ClientCreateInput!) {
-        clientCreate(input: $input) {
-          client {
-            id
-            firstName
-            lastName
-          }
-          userErrors {
-            message
-            path
-          }
-        }
-      }
-    `, {
-      input: {
-        firstName: quote.firstName || 'Property',
-        lastName: quote.lastName || 'Owner',
-        ...(quote.email && { emails: [{ description: "main", primary: true, address: quote.email }] }),
-        ...(quote.phone && { phones: [{ description: "main", primary: true, number: quote.phone }] }),
+    // ---- CREATE CLIENT ----
+    if (action === 'createClient' || action === 'both') {
+      const clientInput = {
+        firstName: body.firstName || 'Property',
+        lastName: body.lastName || 'Owner',
         billingAddress: {
-          street1: quote.address || '',
-          city: quote.city || '',
-          province: quote.state || '',
-          postalCode: quote.zip || '',
+          street1: body.address || '',
+          city: body.city || '',
+          province: body.state || '',
+          postalCode: body.zip || '',
           country: 'US',
         },
-      },
-    });
+      };
+      if (body.email) {
+        clientInput.emails = [{ description: "main", primary: true, address: body.email }];
+      }
+      if (body.phone) {
+        clientInput.phones = [{ description: "main", primary: true, number: body.phone }];
+      }
+      if (body.companyName) {
+        clientInput.companyName = body.companyName;
+      }
 
-    const client = clientData.clientCreate.client;
-    if (!client) {
-      const errors = clientData.clientCreate.userErrors;
-      throw new Error('Failed to create client: ' + errors.map(e => e.message).join(', '));
+      const clientData = await jobberGraphQL(token, `
+        mutation CreateClient($input: ClientCreateInput!) {
+          clientCreate(input: $input) {
+            client {
+              id
+              firstName
+              lastName
+            }
+            userErrors {
+              message
+              path
+            }
+          }
+        }
+      `, { input: clientInput });
+
+      const client = clientData.clientCreate.client;
+      if (!client) {
+        const errors = clientData.clientCreate.userErrors;
+        throw new Error('Failed to create client: ' + errors.map(e => e.message).join(', '));
+      }
+
+      // If only creating client, return now
+      if (action === 'createClient') {
+        return res.status(200).json({
+          success: true,
+          action: 'createClient',
+          clientId: client.id,
+          clientName: `${client.firstName} ${client.lastName}`,
+        });
+      }
+
+      // For 'both', continue to quote creation with this client
+      body.clientId = client.id;
     }
 
-    // Step 2: Create a quote for that client
-    const lineItems = [];
-    if (quote.services) {
-      for (const svc of quote.services) {
-        if (svc.total > 0) {
-          lineItems.push({
-            name: svc.name,
-            description: svc.description || '',
-            qty: 1,
-            unitPrice: svc.total,
-          });
+    // ---- CREATE QUOTE ----
+    if (action === 'createQuote' || action === 'both') {
+      // If no clientId provided, create client first
+      let clientId = body.clientId;
+      if (!clientId) {
+        const clientInput = {
+          firstName: body.firstName || 'Property',
+          lastName: body.lastName || 'Owner',
+          billingAddress: {
+            street1: body.address || '',
+            city: body.city || '',
+            province: body.state || '',
+            postalCode: body.zip || '',
+            country: 'US',
+          },
+        };
+        if (body.email) {
+          clientInput.emails = [{ description: "main", primary: true, address: body.email }];
+        }
+        if (body.phone) {
+          clientInput.phones = [{ description: "main", primary: true, number: body.phone }];
+        }
+
+        const clientData = await jobberGraphQL(token, `
+          mutation CreateClient($input: ClientCreateInput!) {
+            clientCreate(input: $input) {
+              client { id firstName lastName }
+              userErrors { message path }
+            }
+          }
+        `, { input: clientInput });
+
+        const client = clientData.clientCreate.client;
+        if (!client) {
+          const errors = clientData.clientCreate.userErrors;
+          throw new Error('Failed to create client: ' + errors.map(e => e.message).join(', '));
+        }
+        clientId = client.id;
+      }
+
+      // Build line items from services
+      const lineItems = [];
+      if (body.services) {
+        for (const svc of body.services) {
+          if (svc.total > 0) {
+            lineItems.push({
+              name: svc.name,
+              description: svc.description || '',
+              qty: 1,
+              unitPrice: svc.total,
+            });
+          }
         }
       }
-    }
 
-    if (lineItems.length === 0 && quote.totalPrice) {
-      lineItems.push({
-        name: 'Restoration Services',
-        description: quote.description || `Quote for ${quote.address || 'property'}`,
-        qty: 1,
-        unitPrice: quote.totalPrice,
+      if (lineItems.length === 0 && body.totalPrice) {
+        lineItems.push({
+          name: 'Restoration Services',
+          description: body.description || `Quote for ${body.address || 'property'}`,
+          qty: 1,
+          unitPrice: body.totalPrice,
+        });
+      }
+
+      const quoteData = await jobberGraphQL(token, `
+        mutation CreateQuote($input: QuoteCreateInput!) {
+          quoteCreate(input: $input) {
+            quote {
+              id
+              quoteNumber
+              title
+              amounts { total }
+            }
+            userErrors { message path }
+          }
+        }
+      `, {
+        input: {
+          clientId: clientId,
+          title: `Restoration Quote - ${body.address || 'New Property'}`,
+          message: body.notes || '',
+          lineItems: lineItems,
+        },
+      });
+
+      const jobberQuote = quoteData.quoteCreate.quote;
+      if (!jobberQuote) {
+        const errors = quoteData.quoteCreate.userErrors;
+        throw new Error('Failed to create quote: ' + errors.map(e => e.message).join(', '));
+      }
+
+      return res.status(200).json({
+        success: true,
+        action: action,
+        clientId: clientId,
+        quoteId: jobberQuote.id,
+        quoteNumber: jobberQuote.quoteNumber,
       });
     }
 
-    const quoteData = await jobberGraphQL(token, `
-      mutation CreateQuote($input: QuoteCreateInput!) {
-        quoteCreate(input: $input) {
-          quote {
-            id
-            quoteNumber
-            title
-            amounts {
-              total
-            }
-          }
-          userErrors {
-            message
-            path
-          }
-        }
-      }
-    `, {
-      input: {
-        clientId: client.id,
-        title: `Restoration Quote - ${quote.address || 'New Property'}`,
-        message: quote.notes || '',
-        lineItems: lineItems,
-      },
-    });
-
-    const jobberQuote = quoteData.quoteCreate.quote;
-    if (!jobberQuote) {
-      const errors = quoteData.quoteCreate.userErrors;
-      throw new Error('Failed to create quote: ' + errors.map(e => e.message).join(', '));
-    }
-
-    return res.status(200).json({
-      success: true,
-      clientId: client.id,
-      quoteId: jobberQuote.id,
-      quoteNumber: jobberQuote.quoteNumber,
-    });
+    return res.status(400).json({ error: 'Invalid action. Use createClient, createQuote, or both.' });
 
   } catch (err) {
     console.error('Jobber send error:', err);
