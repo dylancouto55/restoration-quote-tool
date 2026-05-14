@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Owner Quote Tool | Restoration PW</title>
+  <style>
+    :root {
+      --bg: #0f1419; --panel: #1a2028; --panel-2: #232a35; --border: #2d3744;
+      --accent: #4a9eff; --accent-2: #6bb6ff; --good: #4ade80; --warn: #fbbf24;
+      --bad: #fca5a5; --text: #e6edf3; --muted: #8b96a5;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; -webkit-font-smoothing: antialiased; }
+
+    /* ===== Login Gate ===== */
+    #loginGate { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+    #loginGate .login-box { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 32px; max-width: 360px; width: 100%; text-align: center; }
+    #loginGate h2 { font-size: 20px; margin-bottom: 6px; }
+    #loginGate .sub { color: var(--muted); font-size: 13px; margin-bottom: 20px; }
+    #loginGate input { width: 100%; padding: 12px 14px; background: var(--panel-2); border: 1px solid var(--border); border-radius: 9px; color: var(--text); font-size: 18px; text-align: center; letter-spacing: 4px; font-family: inherit; }
+    #loginGate input:focus { outline: none; border-color: var(--accent); }
+    #loginGate .login-btn { width: 100%; padding: 12px; margin-top: 12px; background: var(--accent); color: white; border: none; border-radius: 9px; font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; }
+    #loginGate .login-btn:hover { background: var(--accent-2); }
+    #loginGate .error { color: var(--bad); font-size: 13px; margin-top: 10px; display: none; }
+
+    /* ===== Main Layout ===== */
+    #mainApp { display: none; }
+    .top-bar { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; background: var(--panel); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
+    .top-bar h1 { font-size: 16px; font-weight: 600; }
+    .top-bar .badge { background: var(--accent); color: white; font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 600; margin-left: 8px; vertical-align: middle; }
+    .top-bar-actions { display: flex; gap: 8px; }
+    .top-bar-actions button { padding: 6px 14px; border-radius: 7px; border: 1px solid var(--border); background: var(--panel-2); color: var(--text); font-size: 12px; font-weight: 500; cursor: pointer; font-family: inherit; }
+    .top-bar-actions button:hover { border-color: var(--accent); }
+    .top-bar-actions button.active { background: var(--accent); border-color: var(--accent); color: white; }
+
+    .layout { display: flex; height: calc(100vh - 45px); overflow: hidden; }
+
+    /* ===== Quote Side ===== */
+    .quote-side { flex: 1; overflow-y: auto; padding: 16px; min-width: 0; }
+    .quote-side .card { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 18px; margin-bottom: 16px; }
+    .quote-side .card h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: var(--accent-2); margin-bottom: 14px; font-weight: 600; }
+    .field { margin-bottom: 14px; }
+    .field:last-child { margin-bottom: 0; }
+    .field label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; font-weight: 500; }
+    .field .hint { font-size: 11px; color: var(--muted); margin-top: 4px; opacity: 0.8; }
+    input[type="number"], input[type="text"], input[type="tel"], input[type="email"], select, textarea {
+      width: 100%; padding: 10px 12px; background: var(--panel-2); border: 1px solid var(--border); border-radius: 9px; color: var(--text); font-size: 15px; font-family: inherit; -webkit-appearance: none; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); background: #28303d; }
+    select { background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%238b96a5' d='M6 8L0 0h12z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
+    .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .input-wrap { position: relative; }
+    .input-wrap .suffix { position: absolute; top: 50%; transform: translateY(-50%); right: 14px; color: var(--muted); font-size: 14px; pointer-events: none; }
+    .input-wrap.has-suffix input { padding-right: 50px; }
+
+    /* Service grid */
+    .service-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .service-card { padding: 12px; background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px; cursor: pointer; transition: all 0.15s; position: relative; }
+    .service-card:hover { border-color: var(--accent); }
+    .service-card.selected { background: rgba(74,158,255,0.1); border-color: var(--accent); }
+    .service-card .check { position: absolute; top: 8px; right: 8px; width: 18px; height: 18px; border: 2px solid var(--border); border-radius: 50%; background: var(--panel); }
+    .service-card.selected .check { background: var(--accent); border-color: var(--accent); }
+    .service-card.selected .check::after { content: ''; position: absolute; left: 4px; top: 1px; width: 5px; height: 9px; border: solid white; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+    .service-card .icon { font-size: 20px; margin-bottom: 4px; }
+    .service-card .title { font-weight: 600; font-size: 13px; }
+    .service-card .desc { font-size: 10px; color: var(--muted); }
+
+    .service-detail { margin-top: 14px; padding: 14px; background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px; display: none; }
+    .service-detail.show { display: block; }
+    .service-detail h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--accent-2); margin-bottom: 10px; font-weight: 600; }
+
+    .preset-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .preset { flex: 1; min-width: 0; padding: 8px 8px; background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 12px; cursor: pointer; font-family: inherit; font-weight: 500; text-align: center; }
+    .preset:hover { border-color: var(--accent); }
+    .preset.active { background: var(--accent); border-color: var(--accent); color: white; }
+
+    .lookup-row { display: flex; gap: 8px; }
+    .lookup-row input { flex: 1; min-width: 0; }
+    .lookup-btn { padding: 10px 14px; background: var(--accent); color: white; border: none; border-radius: 9px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; white-space: nowrap; }
+    .lookup-btn:hover { background: var(--accent-2); }
+    .lookup-btn:disabled { opacity: 0.6; cursor: wait; }
+    .lookup-status { margin-top: 8px; padding: 8px 10px; border-radius: 8px; font-size: 12px; display: none; line-height: 1.4; }
+    .lookup-status.show { display: block; }
+    .lookup-status.loading { background: rgba(74,158,255,0.1); color: var(--accent-2); border: 1px solid rgba(74,158,255,0.3); }
+    .lookup-status.success { background: rgba(74,222,128,0.1); color: var(--good); border: 1px solid rgba(74,222,128,0.3); }
+    .lookup-status.error { background: rgba(252,165,165,0.1); color: var(--bad); border: 1px solid rgba(252,165,165,0.3); }
+
+    /* Results */
+    .results { background: linear-gradient(135deg, #1a2535 0%, #0f1925 100%); border: 1px solid var(--accent); }
+    .results h2 { color: var(--accent); }
+    .quote-line { display: flex; justify-content: space-between; padding: 8px 0; font-size: 13px; border-bottom: 1px solid var(--border); }
+    .quote-line:last-child { border-bottom: none; }
+    .quote-line .label { color: var(--text); }
+    .quote-line .value { color: var(--muted); font-variant-numeric: tabular-nums; }
+    .total { margin-top: 14px; padding: 16px; background: var(--panel-2); border-radius: 10px; border-left: 3px solid var(--accent); text-align: center; }
+    .total .label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+    .total .price-range { font-size: 28px; font-weight: 700; color: var(--good); font-variant-numeric: tabular-nums; }
+
+    /* ===== Settings Side ===== */
+    .settings-side { width: 380px; background: var(--panel); border-left: 1px solid var(--border); overflow-y: auto; padding: 16px; flex-shrink: 0; transition: width 0.2s, padding 0.2s; }
+    .settings-side.collapsed { width: 0; padding: 0; overflow: hidden; }
+    .settings-side h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: var(--accent-2); margin-bottom: 12px; font-weight: 600; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+    .settings-section { margin-bottom: 20px; }
+    .settings-section h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--warn); margin-bottom: 10px; font-weight: 600; }
+
+    /* Rate inputs in sidebar */
+    .rate-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; padding: 6px 0; }
+    .rate-row label { font-size: 12px; color: var(--text); font-weight: 500; flex: 1; }
+    .rate-row input[type="number"] { width: 80px; padding: 6px 8px; font-size: 13px; text-align: right; }
+    .rate-row .unit { font-size: 11px; color: var(--muted); margin-left: 4px; width: 35px; }
+
+    /* Toggle switches */
+    .toggle-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; padding: 4px 0; }
+    .toggle-row label { font-size: 12px; color: var(--text); }
+    .toggle-switch { position: relative; width: 36px; height: 20px; flex-shrink: 0; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-switch .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: var(--panel-2); border: 1px solid var(--border); border-radius: 20px; transition: 0.2s; }
+    .toggle-switch .slider:before { content: ''; position: absolute; height: 14px; width: 14px; left: 2px; bottom: 2px; background: var(--muted); border-radius: 50%; transition: 0.2s; }
+    .toggle-switch input:checked + .slider { background: var(--accent); border-color: var(--accent); }
+    .toggle-switch input:checked + .slider:before { transform: translateX(16px); background: white; }
+
+    /* Reset button */
+    .reset-btn { width: 100%; padding: 10px; background: transparent; border: 1px solid var(--border); border-radius: 8px; color: var(--muted); font-size: 12px; cursor: pointer; font-family: inherit; margin-top: 10px; }
+    .reset-btn:hover { border-color: var(--bad); color: var(--bad); }
+
+    /* Copy quote button */
+    .copy-btn { width: 100%; padding: 14px; background: var(--good); color: #0a1f0e; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; margin-top: 8px; }
+    .copy-btn:hover { background: #6ee395; }
+
+    .notes-area { width: 100%; min-height: 60px; resize: vertical; }
+
+    /* Mobile */
+    @media (max-width: 768px) {
+      .layout { flex-direction: column; height: auto; }
+      .quote-side { overflow: visible; }
+      .settings-side { width: 100%; border-left: none; border-top: 1px solid var(--border); }
+      .settings-side.collapsed { width: 100%; height: 0; }
+      .service-grid { grid-template-columns: 1fr; }
+      .row-2 { grid-template-columns: 1fr; }
+    }
+
+    .spinner { display: inline-block; width: 12px; height: 12px; border: 2px solid rgba(74,158,255,0.3); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; margin-right: 6px; vertical-align: -2px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .street-view-container { margin-top: 10px; border-radius: 10px; overflow: hidden; display: none; }
+    .street-view-container.show { display: block; }
+    .street-view-container img { width: 100%; height: auto; display: block; border-radius: 10px; }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN GATE -->
+<div id="loginGate">
+  <div class="login-box">
+    <h2>Owner Access</h2>
+    <div class="sub">Restoration Pressure Washing LLC</div>
+    <input type="password" id="pinInput" placeholder="Enter PIN" maxlength="20" />
+    <button class="login-btn" id="loginBtn">Unlock</button>
+    <div class="error" id="loginError">Incorrect PIN. Try again.</div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="mainApp">
+  <div class="top-bar">
+    <div>
+      <h1 style="display:inline;">Quote Builder<span class="badge">OWNER</span></h1>
+    </div>
+    <div class="top-bar-actions">
+      <button id="toggleSettings" class="active">Settings Panel</button>
+      <button id="newQuoteBtn">New Quote</button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <!-- LEFT: Quote Form -->
+    <div class="quote-side">
+      <!-- Address Lookup -->
+      <div class="card">
+        <h2>Property</h2>
+        <div class="field">
+          <label for="address">Address</label>
+          <div class="lookup-row">
+            <input type="text" id="address" placeholder="123 Main St, Warren, MI 48088" />
+            <button class="lookup-btn" id="lookupBtn">Look Up</button>
+          </div>
+          <div class="lookup-status" id="lookupStatus"></div>
+          <div class="street-view-container" id="streetViewContainer">
+            <img id="streetViewImg" alt="Street view" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Services -->
+      <div class="card">
+        <h2>Services</h2>
+        <div class="service-grid" id="serviceGrid"></div>
+
+        <!-- House Wash -->
+        <div class="service-detail" id="detail-house_wash">
+          <h3>House Wash</h3>
+          <div class="row-2">
+            <div class="field"><label for="house_sqft">Living Sq Ft</label><div class="input-wrap has-suffix"><input type="number" id="house_sqft" value="2000" min="0" step="50" /><span class="suffix">sq ft</span></div></div>
+            <div class="field"><label for="house_stories">Stories</label><select id="house_stories"><option value="1">1 Story</option><option value="1.5">1.5 Story</option><option value="2" selected>2 Story</option><option value="3">3 Story</option></select></div>
+          </div>
+          <div class="field"><label>Wash Level</label><div class="preset-row" data-service="house"><button type="button" class="preset" data-level="basic">Basic</button><button type="button" class="preset active" data-level="standard">Standard</button><button type="button" class="preset" data-level="premium">Premium</button></div></div>
+        </div>
+
+        <!-- Driveway -->
+        <div class="service-detail" id="detail-driveway">
+          <h3>Driveway / Concrete</h3>
+          <div class="field"><label for="driveway_sqft">Square Footage</label><div class="input-wrap has-suffix"><input type="number" id="driveway_sqft" value="600" min="0" step="50" /><span class="suffix">sq ft</span></div></div>
+          <div class="field"><label>Surface Condition</label><div class="preset-row" data-service="driveway"><button type="button" class="preset" data-level="light">Light Dirt</button><button type="button" class="preset active" data-level="standard">Moderate</button><button type="button" class="preset" data-level="heavy">Heavy Stains</button></div></div>
+        </div>
+
+        <!-- Roof -->
+        <div class="service-detail" id="detail-roof">
+          <h3>Roof Wash</h3>
+          <div class="field"><label for="roof_sqft">Roof Sq Ft</label><div class="input-wrap has-suffix"><input type="number" id="roof_sqft" value="1800" min="0" step="50" /><span class="suffix">sq ft</span></div></div>
+          <div class="field"><label>Algae Level</label><div class="preset-row" data-service="roof"><button type="button" class="preset" data-level="light">Light</button><button type="button" class="preset active" data-level="standard">Moderate</button><button type="button" class="preset" data-level="heavy">Heavy</button></div></div>
+        </div>
+
+        <!-- Gutters -->
+        <div class="service-detail" id="detail-gutters">
+          <h3>Gutters</h3>
+          <div class="field"><label for="gutter_lnft">Linear Footage</label><div class="input-wrap has-suffix"><input type="number" id="gutter_lnft" value="120" min="0" step="10" /><span class="suffix">ln ft</span></div></div>
+          <div class="field"><label>Service Type</label><div class="preset-row" data-service="gutters"><button type="button" class="preset active" data-level="cleaning">Cleaning Out</button><button type="button" class="preset" data-level="brightening">Ext Brightening</button><button type="button" class="preset" data-level="both">Both</button></div></div>
+        </div>
+
+        <!-- Junk -->
+        <div class="service-detail" id="detail-junk">
+          <h3>Junk Removal</h3>
+          <div class="field"><label for="junk_volume">Volume</label><select id="junk_volume"><option value="single">Single Item</option><option value="quarter" selected>1/4 Truck</option><option value="half">1/2 Truck</option><option value="threequarter">3/4 Truck</option><option value="full">Full Truck</option></select></div>
+          <div class="field"><label for="junk_description">Description</label><textarea id="junk_description" placeholder="Old furniture, appliances, etc." style="min-height:50px;resize:vertical;"></textarea></div>
+        </div>
+
+        <!-- Window Cleaning -->
+        <div class="service-detail" id="detail-window_cleaning">
+          <h3>Window Cleaning</h3>
+          <div class="row-2">
+            <div class="field"><label for="window_count">Windows</label><input type="number" id="window_count" value="15" min="1" step="1" /></div>
+            <div class="field"><label for="window_type">Type</label><select id="window_type"><option value="exterior" selected>Exterior Only</option><option value="both">Interior + Exterior</option></select></div>
+          </div>
+          <div class="field"><label>Condition</label><div class="preset-row" data-service="windows"><button type="button" class="preset" data-level="light">Light</button><button type="button" class="preset active" data-level="standard">Standard</button><button type="button" class="preset" data-level="heavy">Heavy</button></div></div>
+        </div>
+
+        <!-- Gutter Guards -->
+        <div class="service-detail" id="detail-gutter_guards">
+          <h3>Gutter Guards</h3>
+          <div class="field"><label for="guard_lnft">Linear Footage</label><div class="input-wrap has-suffix"><input type="number" id="guard_lnft" value="120" min="0" step="10" /><span class="suffix">ln ft</span></div></div>
+          <div class="field"><label>Guard Type</label><div class="preset-row" data-service="gutter_guards"><button type="button" class="preset" data-level="mesh">Mesh Screen</button><button type="button" class="preset active" data-level="micro_mesh">Micro-Mesh</button><button type="button" class="preset" data-level="solid">Solid Cover</button></div></div>
+        </div>
+      </div>
+
+      <!-- Quote Results -->
+      <div class="card results" id="quoteCard" style="display:none;">
+        <h2>Quote</h2>
+        <div id="quoteLines"></div>
+        <div class="total">
+          <div class="label">Total Estimate</div>
+          <div class="price-range" id="priceRange">$0 - $0</div>
+        </div>
+      </div>
+
+      <!-- Notes & Copy -->
+      <div class="card">
+        <h2>Job Notes</h2>
+        <div class="field">
+          <textarea id="jobNotes" class="notes-area" placeholder="Add notes about this job..."></textarea>
+        </div>
+        <button class="copy-btn" id="copyQuoteBtn">Copy Quote to Clipboard</button>
+      </div>
+    </div>
+
+    <!-- RIGHT: Settings Sidebar -->
+    <div class="settings-side" id="settingsPanel">
+      <h2>Live Rate Adjustments</h2>
+      <div class="field hint" style="margin-bottom:16px;font-size:11px;color:var(--muted);">Changes here are temporary â they only affect this quote. Your saved config stays untouched.</div>
+
+      <button class="reset-btn" id="resetBtn">Reset All to Saved Defaults</button>
+
+      <!-- Behavior Settings -->
+      <div class="settings-section" style="margin-top:16px;">
+        <h3>Behavior</h3>
+        <div class="rate-row">
+          <label>Range Spread Low</label>
+          <input type="number" id="set_spread_low" value="10" min="0" max="50" step="1" style="width:60px;" />
+          <span class="unit">%</span>
+        </div>
+        <div class="rate-row">
+          <label>Range Spread High</label>
+          <input type="number" id="set_spread_high" value="15" min="0" max="50" step="1" style="width:60px;" />
+          <span class="unit">%</span>
+        </div>
+        <div class="rate-row">
+          <label>Bundle Discount</label>
+          <input type="number" id="set_bundle_pct" value="10" min="0" max="50" step="1" style="width:60px;" />
+          <span class="unit">%</span>
+        </div>
+        <div class="rate-row">
+          <label>Bundle Threshold</label>
+          <input type="number" id="set_bundle_thresh" value="3" min="2" max="7" step="1" style="width:60px;" />
+          <span class="unit">svcs</span>
+        </div>
+      </div>
+
+      <!-- House Wash Rates -->
+      <div class="settings-section" id="settings-house_wash">
+        <h3>House Wash</h3>
+        <div class="rate-row"><label>Min Price</label><input type="number" id="rate_hw_min" value="275" step="25" style="width:80px;" /><span class="unit">$</span></div>
+        <div class="rate-row"><label>Basic Rate</label><input type="number" id="rate_hw_basic" value="0.10" step="0.01" style="width:80px;" /><span class="unit">$/sf</span></div>
+        <div class="rate-row"><label>Standard Rate</label><input type="number" id="rate_hw_standard" value="0.18" step="0.01" style="width:80px;" /><span class="unit">$/sf</span></div>
+        <div class="rate-row"><label>Premium Rate</label><input type="number" id="rate_hw_premium" value="0.28" step="0.01" style="width:80px;" /><span class="unit">$/sf</span></div>
+      </div>
+
+      <!-- Driveway Rates -->
+      <div class="settings-section" id="settings-driveway">
+        <h3>Driveway</h3>
+        <div class="rate-row"><label>Min Price</label><input type="number" id="rate_dw_min" value="150" step="25" style="width:80px;" /><span class="unit">$</span></div>
+        <div class="rate-row"><label>Light Rate</label><input type="number" id="rate_dw_light" value="0.18" step="0.01" style="width:80px;" /><span class="unit">$/sf</span></div>
+        <div class="rate-row"><label>Standard Rate</label><input type="number" id="rate_dw_standard" value="0.25" step="0.01" style="width:80px;" /><span class="unit">$/sf</span></div>
+        <div class="rate-row"><label>Heavy Rate</label><input type="number" id="rate_dw_heavy" value="0.35" step="0.01" style="width:80px;" /><span class="unit">$/sf</span></div>
+      </div>
+
+      <!-- Roof Rates -->
+      <div class="settings-section" id="settings-roof">
+        <h3>Roof Wash</h3>
+        <div class="rate-row"><label>Min Price</label><input type="number" id="rate_rf_min" value="350" step="25" style="width:80px;" /><span class="unit">$</span></div>
+        <div class="rate-row"><label>Light Rate</label><input type="number" id="rate_rf_light" value="0.30" step="0.01" style="width:80px;" /><span class="unit">$/sf</span></div>
+        <div class="rate-row"><label>Standard Rate</label><input type="number" id="rate_rf_standard" value="0.40" step="0.01" style="width:80px;" /><span class="unit">$/sf</span></div>
+        <div class="rate-row"><label>Heavy Rate</label><input type="number" id="rate_rf_heavy" value="0.55" step="0.01" style="width:80px;" /><span class="unit">$/sf</span></div>
+      </div>
+
+      <!-- Gutter Rates -->
+      <div class="settings-section" id="settings-gutters">
+        <h3>Gutters</h3>
+        <div class="rate-row"><label>Min Price</label><input type="number" id="rate_gt_min" value="150" step="25" style="width:80px;" /><span class="unit">$</span></div>
+        <div class="rate-row"><label>Cleaning Rate</label><input type="number" id="rate_gt_cleaning" value="1.75" step="0.25" style="width:80px;" /><span class="unit">$/lf</span></div>
+        <div class="rate-row"><label>Brightening Rate</label><input type="number" id="rate_gt_brightening" value="2.50" step="0.25" style="width:80px;" /><span class="unit">$/lf</span></div>
+        <div class="rate-row"><label>Both Rate</label><input type="number" id="rate_gt_both" value="3.75" step="0.25" style="width:80px;" /><span class="unit">$/lf</span></div>
+      </div>
+
+      <!-- Window Cleaning Rates -->
+      <div class="settings-section" id="settings-window_cleaning">
+        <h3>Window Cleaning</h3>
+        <div class="rate-row"><label>Min Price</label><input type="number" id="rate_wc_min" value="150" step="25" style="width:80px;" /><span class="unit">$</span></div>
+        <div class="rate-row"><label>Ext Light</label><input type="number" id="rate_wc_ext_light" value="5" step="0.5" style="width:80px;" /><span class="unit">$/win</span></div>
+        <div class="rate-row"><label>Ext Standard</label><input type="number" id="rate_wc_ext_std" value="7" step="0.5" style="width:80px;" /><span class="unit">$/win</span></div>
+        <div class="rate-row"><label>Ext Heavy</label><input type="number" id="rate_wc_ext_heavy" value="10" step="0.5" style="width:80px;" /><span class="unit">$/win</span></div>
+        <div class="rate-row"><label>Both Light</label><input type="number" id="rate_wc_both_light" value="8" step="0.5" style="width:80px;" /><span class="unit">$/win</span></div>
+        <div class="rate-row"><label>Both Standard</label><input type="number" id="rate_wc_both_std" value="12" step="0.5" style="width:80px;" /><span class="unit">$/win</span></div>
+        <div class="rate-row"><label>Both Heavy</label><input type="number" id="rate_wc_both_heavy" value="16" step="0.5" style="width:80px;" /><span class="unit">$/win</span></div>
+      </div>
+
+      <!-- Junk Tiers -->
+      <div class="settings-section" id="settings-junk">
+        <h3>Junk Removal</h3>
+        <div class="rate-row"><label>Single Low</label><input type="number" id="rate_jk_single_low" value="75" step="25" style="width:80px;" /><span class="unit">$</span></div>
+        <div class="rate-row"><label>Single High</label><input type="number" id="rate_jk_single_high" value="150" step="25" style="width:80px;" /><span class="unit">$</span></div>
+        <div class="rate-row"><label>1/4 Low</label><input type="number" id="rate_jk_quarter_low" value="150" step="25" style="width:80px;" /><span class="unit">$</span></div>
+        <div class="rate-row"><label>1/4 High</label><input type="number" id="rate_jk_quarter_high" value="250" step="25" style="width:80px;" /><span class="unit">$</span></div>
+        <div class="rate-row"><label>1/2 Low</label><input type="number" id="rate_jk_half_low" value="250" step="25" style="width:80px;" /><span class="unit">$</span></div>
+        <div class="rate-row"><label>1/2 High</label><input type="number" id="rate_jk_half_high" value="400" step="25" style="width:80px;" /><span class="unit">$</span></div>
+        <div class="rate-row"><label>3/4 Low</label><input type="number" id="rate_jk_tq_low" value="400" step="25" style="width:80px;" /><span class="unit">$</span></div>
+        <div class="rate-row"><label>3/4 High</label><input type="number" id="rate_jk_tq_high" value="550" step="25" style="width:80px;" /><span class="unit">$</span></div>
+        <div class="rate-row"><label>Full Low</label><input type="number" id="rate_jk_full_low" value="550" step="25" style="width:80px;" /><span class="unit">$</span></div>
+        <div class="rate-row"><label>Full High</label><input type="number" id="rate_jk_full_high" value="750" step="25" style="width:80px;" /><span class="unit">$</span></div>
+      </div>
+
+      <!-- Gutter Guards Rates -->
+      <div class="settings-section" id="settings-gutter_guards">
+        <h3>Gutter Guards</h3>
+        <div class="rate-row"><label>Min Price</label><input type="number" id="rate_gg_min" value="300" step="25" style="width:80px;" /><span class="unit">$</span></div>
+        <div class="rate-row"><label>Mesh Rate</label><input type="number" id="rate_gg_mesh" value="6" step="0.5" style="width:80px;" /><span class="unit">$/lf</span></div>
+        <div class="rate-row"><label>Micro-Mesh Rate</label><input type="number" id="rate_gg_micro" value="9" step="0.5" style="width:80px;" /><span class="unit">$/lf</span></div>
+        <div class="rate-row"><label>Solid Rate</label><input type="number" id="rate_gg_solid" value="12" step="0.5" style="width:80px;" /><span class="unit">$/lf</span></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const fmt = n => '$' + Math.round(n).toLocaleString('en-US');
+
+// ===== Login =====
+const OWNER_PIN = 'restoration2024';
+$('loginBtn').addEventListener('click', tryLogin);
+$('pinInput').addEventListener('keydown', e => { if (e.key === 'Enter') tryLogin(); });
+function tryLogin() {
+  if ($('pinInput').value === OWNER_PIN) {
+    $('loginGate').style.display = 'none';
+    $('mainApp').style.display = 'block';
+    init();
+  } else {
+    $('loginError').style.display = 'block';
+    $('pinInput').value = '';
+    $('pinInput').focus();
+  }
+}
+
+// ===== Config =====
+let CONFIG = null;
+let SAVED_CONFIG = null; // original from server
+
+async function loadConfig() {
+  try {
+    const r = await fetch('/api/settings');
+    if (r.ok) {
+      const data = await r.json();
+      if (data.config && data.config.services) {
+        CONFIG = JSON.parse(JSON.stringify(data.config));
+        SAVED_CONFIG = JSON.parse(JSON.stringify(data.config));
+      }
+    }
+  } catch(e) { console.warn('Config load failed', e); }
+  if (!CONFIG) {
+    CONFIG = getDefaults();
+    SAVED_CONFIG = JSON.parse(JSON.stringify(CONFIG));
+  }
+  populateSettingsPanel();
+}
+
+function getDefaults() {
+  return {
+    behavior: { show_instant_quote: true, show_price_range: true, price_range_spread_low: 0.10, price_range_spread_high: 0.15, bundle_discount_percent: 10, bundle_discount_threshold: 3 },
+    services: {
+      house_wash: { enabled: true, min_price: 275, rates: { basic: 0.10, standard: 0.18, premium: 0.28 } },
+      driveway: { enabled: true, min_price: 150, rates: { light: 0.18, standard: 0.25, heavy: 0.35 } },
+      roof: { enabled: true, min_price: 350, rates: { light: 0.30, standard: 0.40, heavy: 0.55 } },
+      gutters: { enabled: true, min_price: 150, rates: { cleaning: 1.75, brightening: 2.50, both: 3.75 } },
+      junk: { enabled: true, tiers: { single:{low:75,high:150}, quarter:{low:150,high:250}, half:{low:250,high:400}, threequarter:{low:400,high:550}, full:{low:550,high:750} } },
+      window_cleaning: { enabled: true, min_price: 150, rates: { exterior_light:5, exterior_standard:7, exterior_heavy:10, both_light:8, both_standard:12, both_heavy:16 } },
+      gutter_guards: { enabled: true, min_price: 300, rates: { mesh: 6, micro_mesh: 9, solid: 12 } }
+    }
+  };
+}
+
+// ===== Populate Settings Sidebar from CONFIG =====
+function populateSettingsPanel() {
+  const b = CONFIG.behavior;
+  $('set_spread_low').value = Math.round((b.price_range_spread_low || 0.10) * 100);
+  $('set_spread_high').value = Math.round((b.price_range_spread_high || 0.15) * 100);
+  $('set_bundle_pct').value = b.bundle_discount_percent || 10;
+  $('set_bundle_thresh').value = b.bundle_discount_threshold || 3;
+
+  const s = CONFIG.services;
+  // House wash
+  $('rate_hw_min').value = s.house_wash?.min_price || 275;
+  $('rate_hw_basic').value = s.house_wash?.rates?.basic || 0.10;
+  $('rate_hw_standard').value = s.house_wash?.rates?.standard || 0.18;
+  $('rate_hw_premium').value = s.house_wash?.rates?.premium || 0.28;
+  // Driveway
+  $('rate_dw_min').value = s.driveway?.min_price || 150;
+  $('rate_dw_light').value = s.driveway?.rates?.light || 0.18;
+  $('rate_dw_standard').value = s.driveway?.rates?.standard || 0.25;
+  $('rate_dw_heavy').value = s.driveway?.rates?.heavy || 0.35;
+  // Roof
+  $('rate_rf_min').value = s.roof?.min_price || 350;
+  $('rate_rf_light').value = s.roof?.rates?.light || 0.30;
+  $('rate_rf_standard').value = s.roof?.rates?.standard || 0.40;
+  $('rate_rf_heavy').value = s.roof?.rates?.heavy || 0.55;
+  // Gutters
+  $('rate_gt_min').value = s.gutters?.min_price || 150;
+  $('rate_gt_cleaning').value = s.gutters?.rates?.cleaning || 1.75;
+  $('rate_gt_brightening').value = s.gutters?.rates?.brightening || 2.50;
+  $('rate_gt_both').value = s.gutters?.rates?.both || 3.75;
+  // Window cleaning
+  $('rate_wc_min').value = s.window_cleaning?.min_price || 150;
+  $('rate_wc_ext_light').value = s.window_cleaning?.rates?.exterior_light || 5;
+  $('rate_wc_ext_std').value = s.window_cleaning?.rates?.exterior_standard || 7;
+  $('rate_wc_ext_heavy').value = s.window_cleaning?.rates?.exterior_heavy || 10;
+  $('rate_wc_both_light').value = s.window_cleaning?.rates?.both_light || 8;
+  $('rate_wc_both_std').value = s.window_cleaning?.rates?.both_standard || 12;
+  $('rate_wc_both_heavy').value = s.window_cleaning?.rates?.both_heavy || 16;
+  // Junk
+  $('rate_jk_single_low').value = s.junk?.tiers?.single?.low || 75;
+  $('rate_jk_single_high').value = s.junk?.tiers?.single?.high || 150;
+  $('rate_jk_quarter_low').value = s.junk?.tiers?.quarter?.low || 150;
+  $('rate_jk_quarter_high').value = s.junk?.tiers?.quarter?.high || 250;
+  $('rate_jk_half_low').value = s.junk?.tiers?.half?.low || 250;
+  $('rate_jk_half_high').value = s.junk?.tiers?.half?.high || 400;
+  $('rate_jk_tq_low').value = s.junk?.tiers?.threequarter?.low || 400;
+  $('rate_jk_tq_high').value = s.junk?.tiers?.threequarter?.high || 550;
+  $('rate_jk_full_low').value = s.junk?.tiers?.full?.low || 550;
+  $('rate_jk_full_high').value = s.junk?.tiers?.full?.high || 750;
+  // Gutter guards
+  $('rate_gg_min').value = s.gutter_guards?.min_price || 300;
+  $('rate_gg_mesh').value = s.gutter_guards?.rates?.mesh || 6;
+  $('rate_gg_micro').value = s.gutter_guards?.rates?.micro_mesh || 9;
+  $('rate_gg_solid').value = s.gutter_guards?.rates?.solid || 12;
+}
+
+// ===== Read Settings Sidebar into CONFIG =====
+function readSettingsPanel() {
+  CONFIG.behavior.price_range_spread_low = (+$('set_spread_low').value || 10) / 100;
+  CONFIG.behavior.price_range_spread_high = (+$('set_spread_high').value || 15) / 100;
+  CONFIG.behavior.bundle_discount_percent = +$('set_bundle_pct').value || 10;
+  CONFIG.behavior.bundle_discount_threshold = +$('set_bundle_thresh').value || 3;
+
+  const s = CONFIG.services;
+  s.house_wash.min_price = +$('rate_hw_min').value; s.house_wash.rates.basic = +$('rate_hw_basic').value; s.house_wash.rates.standard = +$('rate_hw_standard').value; s.house_wash.rates.premium = +$('rate_hw_premium').value;
+  s.driveway.min_price = +$('rate_dw_min').value; s.driveway.rates.light = +$('rate_dw_light').value; s.driveway.rates.standard = +$('rate_dw_standard').value; s.driveway.rates.heavy = +$('rate_dw_heavy').value;
+  s.roof.min_price = +$('rate_rf_min').value; s.roof.rates.light = +$('rate_rf_light').value; s.roof.rates.standard = +$('rate_rf_standard').value; s.roof.rates.heavy = +$('rate_rf_heavy').value;
+  s.gutters.min_price = +$('rate_gt_min').value; s.gutters.rates.cleaning = +$('rate_gt_cleaning').value; s.gutters.rates.brightening = +$('rate_gt_brightening').value; s.gutters.rates.both = +$('rate_gt_both').value;
+  s.window_cleaning.min_price = +$('rate_wc_min').value;
+  s.window_cleaning.rates.exterior_light = +$('rate_wc_ext_light').value; s.window_cleaning.rates.exterior_standard = +$('rate_wc_ext_std').value; s.window_cleaning.rates.exterior_heavy = +$('rate_wc_ext_heavy').value;
+  s.window_cleaning.rates.both_light = +$('rate_wc_both_light').value; s.window_cleaning.rates.both_standard = +$('rate_wc_both_std').value; s.window_cleaning.rates.both_heavy = +$('rate_wc_both_heavy').value;
+  s.junk.tiers.single = { low: +$('rate_jk_single_low').value, high: +$('rate_jk_single_high').value };
+  s.junk.tiers.quarter = { low: +$('rate_jk_quarter_low').value, high: +$('rate_jk_quarter_high').value };
+  s.junk.tiers.half = { low: +$('rate_jk_half_low').value, high: +$('rate_jk_half_high').value };
+  s.junk.tiers.threequarter = { low: +$('rate_jk_tq_low').value, high: +$('rate_jk_tq_high').value };
+  s.junk.tiers.full = { low: +$('rate_jk_full_low').value, high: +$('rate_jk_full_high').value };
+  s.gutter_guards.min_price = +$('rate_gg_min').value; s.gutter_guards.rates.mesh = +$('rate_gg_mesh').value; s.gutter_guards.rates.micro_mesh = +$('rate_gg_micro').value; s.gutter_guards.rates.solid = +$('rate_gg_solid').value;
+}
+
+// Listen to all settings inputs
+document.querySelectorAll('.settings-side input[type="number"]').forEach(inp => {
+  inp.addEventListener('input', () => { readSettingsPanel(); updateQuote(); });
+});
+
+// ===== Services =====
+const services = [
+  { id:'house_wash', icon:'ð ', title:'House Wash', desc:'Soft wash siding & trim' },
+  { id:'driveway', icon:'ð£ï¸', title:'Driveway', desc:'Concrete & walkways' },
+  { id:'roof', icon:'ðï¸', title:'Roof Wash', desc:'Black streaks & algae' },
+  { id:'gutters', icon:'ðª£', title:'Gutters', desc:'Clean out & brightening' },
+  { id:'junk', icon:'ðï¸', title:'Junk Removal', desc:'Hauling & disposal' },
+  { id:'window_cleaning', icon:'ðª', title:'Windows', desc:'Interior & exterior' },
+  { id:'gutter_guards', icon:'ð¡ï¸', title:'Gutter Guards', desc:'Guard installation' }
+];
+const selectedServices = new Set();
+const serviceLevels = { house:'standard', driveway:'standard', roof:'standard', gutters:'cleaning', windows:'standard', gutter_guards:'micro_mesh' };
+
+function buildServiceGrid() {
+  const grid = $('serviceGrid');
+  grid.innerHTML = '';
+  services.forEach(s => {
+    if (CONFIG.services[s.id]?.enabled === false) return;
+    const card = document.createElement('div');
+    card.className = 'service-card';
+    card.dataset.service = s.id;
+    card.innerHTML = `<div class="check"></div><div class="icon">${s.icon}</div><div class="title">${s.title}</div><div class="desc">${s.desc}</div>`;
+    card.addEventListener('click', () => toggleService(s.id));
+    grid.appendChild(card);
+  });
+}
+
+function toggleService(id) {
+  if (selectedServices.has(id)) selectedServices.delete(id); else selectedServices.add(id);
+  document.querySelectorAll('.service-card').forEach(c => c.classList.toggle('selected', selectedServices.has(c.dataset.service)));
+  document.querySelectorAll('.service-detail').forEach(d => { const did = d.id.replace('detail-',''); d.classList.toggle('show', selectedServices.has(did)); });
+  updateQuote();
+}
+
+// Preset buttons
+document.querySelectorAll('.preset-row').forEach(row => {
+  const service = row.dataset.service;
+  row.querySelectorAll('.preset').forEach(btn => {
+    btn.addEventListener('click', () => {
+      row.querySelectorAll('.preset').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      serviceLevels[service] = btn.dataset.level;
+      updateQuote();
+    });
+  });
+});
+
+// ===== Pricing =====
+function priceHouse(sqft, stories, level) {
+  const footprint = sqft / stories; const side = Math.sqrt(footprint); const peri = side * 4; const wallH = stories * 9 + 2;
+  const ext = Math.round((peri * wallH * 1.15) / 50) * 50;
+  const rate = CONFIG.services.house_wash?.rates?.[level] || 0.18;
+  const base = Math.max(ext * rate, CONFIG.services.house_wash?.min_price || 275);
+  return { low: Math.round(base * (1 - CONFIG.behavior.price_range_spread_low)), high: Math.round(base * (1 + CONFIG.behavior.price_range_spread_high)), label: 'House Wash', details: ext.toLocaleString() + ' sq ft ext, ' + level };
+}
+function priceDriveway(sqft, level) {
+  const rate = CONFIG.services.driveway?.rates?.[level] || 0.25;
+  const base = Math.max(sqft * rate, CONFIG.services.driveway?.min_price || 150);
+  return { low: Math.round(base * (1 - CONFIG.behavior.price_range_spread_low)), high: Math.round(base * (1 + CONFIG.behavior.price_range_spread_high)), label: 'Driveway', details: sqft + ' sq ft, ' + level };
+}
+function priceRoof(sqft, level) {
+  const rate = CONFIG.services.roof?.rates?.[level] || 0.40;
+  const base = Math.max(sqft * rate, CONFIG.services.roof?.min_price || 350);
+  return { low: Math.round(base * (1 - CONFIG.behavior.price_range_spread_low)), high: Math.round(base * (1 + CONFIG.behavior.price_range_spread_high)), label: 'Roof Wash', details: sqft + ' sq ft, ' + level };
+}
+function priceGutters(lnft, type) {
+  const rate = CONFIG.services.gutters?.rates?.[type] || 1.75;
+  const base = Math.max(lnft * rate, CONFIG.services.gutters?.min_price || 150);
+  return { low: Math.round(base * (1 - CONFIG.behavior.price_range_spread_low)), high: Math.round(base * (1 + CONFIG.behavior.price_range_spread_high)), label: 'Gutters', details: lnft + ' ln ft, ' + type };
+}
+function priceJunk(vol) {
+  const t = CONFIG.services.junk?.tiers?.[vol] || { low: 150, high: 250 };
+  return { low: t.low, high: t.high, label: 'Junk Removal', details: vol };
+}
+function priceWindows(count, type, level) {
+  const key = type + '_' + level;
+  const rate = CONFIG.services.window_cleaning?.rates?.[key] || 12;
+  const base = Math.max(count * rate, CONFIG.services.window_cleaning?.min_price || 150);
+  return { low: Math.round(base * (1 - CONFIG.behavior.price_range_spread_low)), high: Math.round(base * (1 + CONFIG.behavior.price_range_spread_high)), label: 'Windows', details: count + ' win, ' + (type==='both'?'int+ext':'ext') + ', ' + level };
+}
+function priceGutterGuards(lnft, type) {
+  const rate = CONFIG.services.gutter_guards?.rates?.[type] || 9;
+  const base = Math.max(lnft * rate, CONFIG.services.gutter_guards?.min_price || 300);
+  return { low: Math.round(base * (1 - CONFIG.behavior.price_range_spread_low)), high: Math.round(base * (1 + CONFIG.behavior.price_range_spread_high)), label: 'Gutter Guards', details: lnft + ' ln ft, ' + type.replace('_','-') };
+}
+
+function updateQuote() {
+  const lines = []; let tLow = 0, tHigh = 0;
+  if (selectedServices.has('house_wash')) { const p = priceHouse(+$('house_sqft').value||2000, +$('house_stories').value||2, serviceLevels.house); lines.push(p); tLow+=p.low; tHigh+=p.high; }
+  if (selectedServices.has('driveway')) { const p = priceDriveway(+$('driveway_sqft').value||600, serviceLevels.driveway); lines.push(p); tLow+=p.low; tHigh+=p.high; }
+  if (selectedServices.has('roof')) { const p = priceRoof(+$('roof_sqft').value||1800, serviceLevels.roof); lines.push(p); tLow+=p.low; tHigh+=p.high; }
+  if (selectedServices.has('gutters')) { const p = priceGutters(+$('gutter_lnft').value||120, serviceLevels.gutters); lines.push(p); tLow+=p.low; tHigh+=p.high; }
+  if (selectedServices.has('junk')) { const p = priceJunk($('junk_volume').value); lines.push(p); tLow+=p.low; tHigh+=p.high; }
+  if (selectedServices.has('window_cleaning')) { const p = priceWindows(+$('window_count').value||15, $('window_type').value, serviceLevels.windows); lines.push(p); tLow+=p.low; tHigh+=p.high; }
+  if (selectedServices.has('gutter_guards')) { const p = priceGutterGuards(+$('guard_lnft').value||120, serviceLevels.gutter_guards); lines.push(p); tLow+=p.low; tHigh+=p.high; }
+
+  const dp = CONFIG.behavior.bundle_discount_percent || 0;
+  const dt = CONFIG.behavior.bundle_discount_threshold || 3;
+  if (dp > 0 && selectedServices.size >= dt) {
+    const dLow = Math.round(tLow * dp/100), dHigh = Math.round(tHigh * dp/100);
+    lines.push({ label: 'Bundle Discount (' + dt + '+ svcs)', details: dp + '% off', low: -dLow, high: -dHigh });
+    tLow -= dLow; tHigh -= dHigh;
+  }
+
+  if (!lines.length) { $('quoteCard').style.display = 'none'; return; }
+  $('quoteCard').style.display = 'block';
+  $('quoteLines').innerHTML = lines.map(l => `<div class="quote-line"><div><div class="label">${l.label}</div><div class="value" style="font-size:10px;opacity:0.7;">${l.details}</div></div><div class="value">${fmt(l.low)} - ${fmt(l.high)}</div></div>`).join('');
+  $('priceRange').textContent = fmt(tLow) + ' - ' + fmt(tHigh);
+  window._quoteData = { lines, totalLow: tLow, totalHigh: tHigh };
+}
+
+// Input listeners
+['house_sqft','house_stories','driveway_sqft','roof_sqft','gutter_lnft','junk_volume','junk_description','window_count','window_type','guard_lnft'].forEach(id => {
+  $(id).addEventListener('input', updateQuote);
+  $(id).addEventListener('change', updateQuote);
+});
+
+// ===== Address Lookup =====
+async function lookupAddress() {
+  const address = $('address').value.trim();
+  const status = $('lookupStatus');
+  const btn = $('lookupBtn');
+  if (!address || address.length < 8) { status.className='lookup-status show error'; status.innerHTML='Enter a full address.'; return; }
+  btn.disabled = true; btn.textContent = 'Looking up...';
+  status.className = 'lookup-status show loading'; status.innerHTML = '<span class="spinner"></span>Looking up property...';
+
+  try {
+    const svResp = await fetch('/api/streetview?address=' + encodeURIComponent(address));
+    if (svResp.ok) { const blob = await svResp.blob(); $('streetViewImg').src = URL.createObjectURL(blob); $('streetViewContainer').classList.add('show'); }
+  } catch(e) {}
+
+  try {
+    const r = await fetch('/api/lookup?address=' + encodeURIComponent(address));
+    const data = await r.json();
+    if (data.found && data.sqft) {
+      $('house_sqft').value = data.sqft;
+      if (data.stories) { const valid=[1,1.5,2,3]; $('house_stories').value = valid.reduce((p,c) => Math.abs(c-data.stories)<Math.abs(p-data.stories)?c:p); }
+      const footprint = data.sqft / (data.stories || 2);
+      $('roof_sqft').value = Math.round(footprint * 1.1 / 50) * 50;
+      const ratio = 1.3; const w = Math.sqrt(footprint/ratio); const l = w*ratio;
+      $('gutter_lnft').value = Math.round(2*(w+l)*0.75);
+      $('guard_lnft').value = $('gutter_lnft').value;
+      if (data.bedrooms || data.sqft) {
+        let winEst;
+        if (data.bedrooms) { const beds=data.bedrooms; const baths=Math.round(data.bathrooms)||Math.max(1,Math.floor(beds*0.75)); winEst=(beds*2)+baths+Math.round(data.sqft/400); }
+        else { winEst = Math.round(data.sqft / 200); }
+        $('window_count').value = Math.max(8, Math.min(winEst, 60));
+      }
+      window._propertyData = data;
+      updateQuote();
+      status.className='lookup-status show success';
+      let msg = '<strong>' + data.sqft.toLocaleString() + ' sq ft</strong>';
+      if (data.stories) msg += ', ' + data.stories + ' story';
+      if (data.bedrooms) msg += ', ' + data.bedrooms + 'bd/' + (data.bathrooms||'?') + 'ba';
+      if (data.year_built) msg += ', built ' + data.year_built;
+      status.innerHTML = msg;
+    } else {
+      status.className='lookup-status show error'; status.innerHTML = data.error || 'No data found.';
+    }
+  } catch(e) { status.className='lookup-status show error'; status.innerHTML='Lookup failed.'; }
+  finally { btn.disabled=false; btn.textContent='Look Up'; }
+}
+$('lookupBtn').addEventListener('click', lookupAddress);
+$('address').addEventListener('keydown', e => { if(e.key==='Enter'){e.preventDefault(); lookupAddress();} });
+
+// ===== Settings Toggle =====
+$('toggleSettings').addEventListener('click', () => {
+  const panel = $('settingsPanel');
+  panel.classList.toggle('collapsed');
+  $('toggleSettings').classList.toggle('active');
+});
+
+// ===== Reset =====
+$('resetBtn').addEventListener('click', () => {
+  CONFIG = JSON.parse(JSON.stringify(SAVED_CONFIG));
+  populateSettingsPanel();
+  updateQuote();
+});
+
+// ===== New Quote =====
+$('newQuoteBtn').addEventListener('click', () => {
+  selectedServices.clear();
+  document.querySelectorAll('.service-card').forEach(c => c.classList.remove('selected'));
+  document.querySelectorAll('.service-detail').forEach(d => d.classList.remove('show'));
+  $('address').value = '';
+  $('lookupStatus').className = 'lookup-status';
+  $('streetViewContainer').classList.remove('show');
+  $('house_sqft').value = 2000; $('house_stories').value = 2;
+  $('driveway_sqft').value = 600; $('roof_sqft').value = 1800;
+  $('gutter_lnft').value = 120; $('guard_lnft').value = 120;
+  $('window_count').value = 15; $('window_type').value = 'exterior';
+  $('junk_volume').value = 'quarter'; $('junk_description').value = '';
+  $('jobNotes').value = '';
+  // Reset presets
+  document.querySelectorAll('.preset-row').forEach(row => {
+    row.querySelectorAll('.preset').forEach((b,i) => { b.classList.toggle('active', i===1); });
+  });
+  Object.assign(serviceLevels, {house:'standard',driveway:'standard',roof:'standard',gutters:'cleaning',windows:'standard',gutter_guards:'micro_mesh'});
+  // Reset gutters preset
+  const gutRow = document.querySelector('.preset-row[data-service="gutters"]');
+  if (gutRow) { gutRow.querySelectorAll('.preset').forEach((b,i) => b.classList.toggle('active', i===0)); }
+  CONFIG = JSON.parse(JSON.stringify(SAVED_CONFIG));
+  populateSettingsPanel();
+  updateQuote();
+  document.querySelector('.quote-side').scrollTo(0,0);
+});
+
+// ===== Copy Quote =====
+$('copyQuoteBtn').addEventListener('click', () => {
+  if (!window._quoteData || !window._quoteData.lines.length) { alert('Select services first.'); return; }
+  const addr = $('address').value.trim() || 'No address';
+  const notes = $('jobNotes').value.trim();
+  let text = 'RESTORATION PRESSURE WASHING LLC\nQuote for: ' + addr + '\n' + '='.repeat(40) + '\n\n';
+  window._quoteData.lines.forEach(l => {
+    text += l.label + ': ' + fmt(l.low) + ' - ' + fmt(l.high) + '\n  ' + l.details + '\n';
+  });
+  text += '\nTOTAL: ' + fmt(window._quoteData.totalLow) + ' - ' + fmt(window._quoteData.totalHigh) + '\n';
+  if (notes) text += '\nNotes: ' + notes + '\n';
+  text += '\n248-602-3934 | Licensed & Insured';
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = $('copyQuoteBtn');
+    btn.textContent = 'Copied!';
+    btn.style.background = 'var(--accent)';
+    btn.style.color = 'white';
+    setTimeout(() => { btn.textContent = 'Copy Quote to Clipboard'; btn.style.background = ''; btn.style.color = ''; }, 2000);
+  });
+});
+
+// ===== Init =====
+async function init() {
+  await loadConfig();
+  buildServiceGrid();
+  updateQuote();
+}
+</script>
+</body>
+</html>
