@@ -52,7 +52,7 @@ export default async function handler(req, res) {
     const result = {
       found: true,
       sqft: prop.squareFootage || null,
-      stories: guessStoriesFromType(prop.architectureType),
+      stories: prop.stories || guessStoriesFromType(prop.architectureType),
       bedrooms: prop.bedrooms || null,
       bathrooms: prop.bathrooms || null,
       year_built: prop.yearBuilt || null,
