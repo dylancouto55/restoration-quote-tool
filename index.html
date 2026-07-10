@@ -268,7 +268,9 @@
     -webkit-tap-highlight-color: transparent;
   }
   .measure-hint { font-size: 12px; color: var(--muted); margin-bottom: 10px; line-height: 1.5; }
-  #measureSearch { margin-bottom: 10px; }
+  #measureSearchWrap { margin-bottom: 10px; }
+  #measureSearchWrap gmp-place-autocomplete { width: 100%; display: block; }
+  #measureSearchWrap input { width: 100%; }
   #measureMap {
     height: 480px;
     border-radius: 10px; overflow: hidden;
@@ -812,7 +814,7 @@
       <button type="button" class="measure-close" id="measureCloseBtn" aria-label="Close">×</button>
     </div>
     <div class="measure-hint" id="measureHint">Tap each corner of the area, then tap "Use this area".</div>
-    <input type="text" id="measureSearch" placeholder="Search an address, then press Enter" autocomplete="off" />
+    <div id="measureSearchWrap"></div>
     <div id="measureMap"></div>
     <div id="measureReadout">Tap at least 3 corners</div>
     <div class="measure-actions">
@@ -1598,7 +1600,7 @@ updateQuote();
       };
       const s = document.createElement('script');
       s.src = 'https://maps.googleapis.com/maps/api/js?key=' + encodeURIComponent(MAPS_KEY)
-            + '&libraries=geometry&callback=__gmapsReady&loading=async&v=weekly';
+            + '&libraries=geometry,places&callback=__gmapsReady&loading=async&v=weekly';
       s.async = true;
       s.onerror = () => reject(new Error('Maps script failed to load'));
       document.head.appendChild(s);
@@ -1612,7 +1614,7 @@ updateQuote();
     $('measureHint').textContent =
       opts.mode === 'house' ? 'Trace the outline of your house — tap each corner of the roof edges, then close the loop.'
       : opts.mode === 'perimeter' ? 'Tap points along your roofline, all the way around the house.'
-      : 'Tap each corner of the ' + label.toLowerCase() + '. Add at least 3 points, then tap "Use this area".';
+      : 'Tap each corner of the ' + label.toLowerCase() + '. Tap the first (green) dot — or "Use this area" — to finish.';
     $('measureApplyBtn').textContent = opts.mode === 'perimeter' ? 'Use this length' : 'Use this area';
     $('measureReadout').textContent = 'Loading satellite map…';
     $('formContainer').style.display = 'none';
@@ -1644,27 +1646,26 @@ updateQuote();
       gestureHandling: 'greedy',   // one-finger pan inside the iframe
       disableDefaultUI: true,
       zoomControl: true,
+      clickableIcons: false,       // don't let POI pins hijack corner taps
       maxZoom: 22
     });
 
+    // Outline only — NOT editable (no drag handles / midpoint ghosts). The
+    // customer taps corners, segments connect them, and tapping the first
+    // (green) dot closes the loop — like Google Earth's measure tool.
     const poly = new maps.Polygon({
-      map, editable: true, clickable: false,
+      map, editable: false, clickable: false,
       strokeColor: '#4a9eff', strokeWeight: 2,
-      fillColor: '#4a9eff', fillOpacity: 0.25
+      fillColor: '#4a9eff', fillOpacity: 0.20
     });
-    const path = poly.getPath();
 
-    map.addListener('click', (e) => path.push(e.latLng));   // tap to drop a corner
-    const onChange = () => updateMeasureReadout();
-    maps.event.addListener(path, 'insert_at', onChange);
-    maps.event.addListener(path, 'set_at', onChange);
-    maps.event.addListener(path, 'remove_at', onChange);
+    measureCtx = Object.assign({}, opts, { maps, map, poly, path: poly.getPath(), markers: [] });
 
-    measureCtx = Object.assign({}, opts, { maps, map, poly, path });
+    map.addListener('click', (e) => addMeasurePoint(e.latLng));   // tap to drop a corner
 
-    // No coordinates on file → geocode the typed address if we have one.
+    // Center on the typed address if we don't already have coordinates.
     if (!(pd.lat && pd.lng)) {
-      const addr = $('address').value.trim();
+      const addr = $('address') ? $('address').value.trim() : '';
       if (addr && addr.length >= 8) {
         try {
           new maps.Geocoder().geocode({ address: addr }, (res, status) => {
@@ -1673,33 +1674,99 @@ updateQuote();
               map.setZoom(res[0].geometry.location_type === 'ROOFTOP' ? 20 : 19);
             }
           });
-        } catch (e) { /* Geocoding API not enabled — rely on the search box */ }
+        } catch (e) {}
       }
     }
 
-    // In-panel search: geocode the typed text and recenter the map. Uses the
-    // Geocoding API (core Maps), NOT the legacy Places SearchBox (which isn't
-    // available to new projects and would poison the whole map with an auth error).
-    const searchInput = $('measureSearch');
-    if (searchInput) {
-      searchInput.addEventListener('keydown', (ev) => {
-        if (ev.key !== 'Enter') return;
-        ev.preventDefault();
-        const q = searchInput.value.trim();
-        if (!q) return;
-        try {
-          new maps.Geocoder().geocode({ address: q }, (res, status) => {
-            if (status === 'OK' && res && res[0]) {
-              const geo = res[0].geometry;
-              if (geo.viewport) map.fitBounds(geo.viewport);
-              else { map.setCenter(geo.location); map.setZoom(20); }
-            }
-          });
-        } catch (e) { /* Geocoding unavailable — customer can pan the map */ }
-      });
-    }
+    try { setupMeasureSearch(maps, map); } catch (e) { /* search is optional */ }
 
     updateMeasureReadout();
+  }
+
+  // A small circle dot for each traced corner. The first is green + larger and
+  // acts as the "close the loop" target.
+  function vertexIcon(maps, isFirst) {
+    return {
+      path: maps.SymbolPath.CIRCLE,
+      scale: isFirst ? 7 : 5,
+      fillColor: isFirst ? '#4ade80' : '#4a9eff',
+      fillOpacity: 1,
+      strokeColor: '#ffffff',
+      strokeWeight: 2
+    };
+  }
+
+  function addMeasurePoint(latLng) {
+    if (!measureCtx) return;
+    const maps = measureCtx.maps;
+    measureCtx.path.push(latLng);
+    const isFirst = measureCtx.markers.length === 0;
+    const marker = new maps.Marker({
+      position: latLng,
+      map: measureCtx.map,
+      icon: vertexIcon(maps, isFirst),
+      clickable: isFirst,               // only the first dot is clickable (to close)
+      cursor: isFirst ? 'pointer' : 'default',
+      zIndex: isFirst ? 999 : 1,
+      title: isFirst ? 'Tap to close the shape' : ''
+    });
+    if (isFirst) {
+      marker.addListener('click', () => {
+        if (measureCtx && measureCtx.path.getLength() >= 3) measureApply();  // close = finish
+      });
+    }
+    measureCtx.markers.push(marker);
+    updateMeasureReadout();
+  }
+
+  // In-panel address auto-suggest using the NEW Places API
+  // (PlaceAutocompleteElement). Falls back to plain Enter-to-geocode if the new
+  // element isn't available. Does NOT use the legacy SearchBox/Autocomplete.
+  function setupMeasureSearch(maps, map) {
+    const wrap = $('measureSearchWrap');
+    if (!wrap) return;
+    wrap.innerHTML = '';
+    if (maps.places && maps.places.PlaceAutocompleteElement) {
+      const pac = new maps.places.PlaceAutocompleteElement();
+      try { pac.setAttribute('placeholder', 'Search an address…'); } catch (e) {}
+      pac.style.width = '100%';
+      wrap.appendChild(pac);
+      const onSelect = async (ev) => {
+        try {
+          const pred = ev.placePrediction || (ev.detail && ev.detail.placePrediction);
+          const place = pred ? pred.toPlace() : (ev.place || (ev.detail && ev.detail.place));
+          if (!place) return;
+          if (place.fetchFields) await place.fetchFields({ fields: ['location', 'viewport'] });
+          if (place.viewport) map.fitBounds(place.viewport);
+          else if (place.location) { map.setCenter(place.location); map.setZoom(20); }
+        } catch (e) {}
+      };
+      pac.addEventListener('gmp-select', onSelect);
+      pac.addEventListener('gmp-placeselect', onSelect);
+      return;
+    }
+    // Fallback: plain input, geocode on Enter.
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.placeholder = 'Search an address, then press Enter';
+    input.autocomplete = 'off';
+    input.style.width = '100%';
+    wrap.appendChild(input);
+    input.addEventListener('keydown', (ev) => {
+      if (ev.key !== 'Enter') return;
+      ev.preventDefault();
+      const q = input.value.trim();
+      if (!q) return;
+      try {
+        new maps.Geocoder().geocode({ address: q }, (res, status) => {
+          if (status === 'OK' && res && res[0]) {
+            const geo = res[0].geometry;
+            if (geo.viewport) map.fitBounds(geo.viewport);
+            else { map.setCenter(geo.location); map.setZoom(20); }
+          }
+        });
+      } catch (e) {}
+    });
   }
 
   function measureAreaFt2() {
@@ -1722,12 +1789,24 @@ updateQuote();
         : ('≈ ' + fmtNum(measurePerimeterFt()) + ' ln ft · ' + n + ' points');
     } else {
       el.textContent = n < 3 ? ('Tap at least 3 corners · ' + n + ' points')
-        : ('≈ ' + fmtNum(measureAreaFt2()) + ' sq ft · ' + n + ' points');
+        : ('≈ ' + fmtNum(measureAreaFt2()) + ' sq ft · ' + n + ' pts · tap the green dot to close');
     }
   }
 
-  function measureUndo() { if (measureCtx && measureCtx.path.getLength()) { measureCtx.path.pop(); updateMeasureReadout(); } }
-  function measureClear() { if (measureCtx) { measureCtx.path.clear(); updateMeasureReadout(); } }
+  function measureUndo() {
+    if (!measureCtx || !measureCtx.path.getLength()) return;
+    measureCtx.path.pop();
+    const m = measureCtx.markers.pop();
+    if (m) m.setMap(null);
+    updateMeasureReadout();
+  }
+  function measureClear() {
+    if (!measureCtx) return;
+    measureCtx.path.clear();
+    measureCtx.markers.forEach(m => m.setMap(null));
+    measureCtx.markers = [];
+    updateMeasureReadout();
+  }
 
   function measureApply() {
     if (!measureCtx) return;
@@ -1780,13 +1859,13 @@ updateQuote();
     $('formContainer').style.display = '';
     if (measureCtx) {
       try {
+        (measureCtx.markers || []).forEach(m => m.setMap(null));
         measureCtx.maps.event.clearInstanceListeners(measureCtx.map);
-        measureCtx.maps.event.clearInstanceListeners(measureCtx.path);
         measureCtx.poly.setMap(null);
       } catch (e) {}
     }
     measureCtx = null;
-    const si = $('measureSearch'); if (si) si.value = '';
+    const wrap = $('measureSearchWrap'); if (wrap) wrap.innerHTML = '';
   }
 
   // Measure-panel buttons
