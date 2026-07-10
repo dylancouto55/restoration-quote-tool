@@ -532,7 +532,7 @@
       <div class="field">
         <div class="hint">Not sure of the size? Trace your house on the satellite map and we'll size it for you.</div>
         <div class="measure-row">
-          <button type="button" class="measure-btn" data-measure="house_wash" data-mode="house" data-input="house_sqft" data-label="House">📐 Measure my house on the map</button>
+          <button type="button" class="measure-btn" data-measure="house_wash" data-mode="house" data-input="house_sqft" data-label="House">📐 Measure my house with SplashQuote</button>
         </div>
       </div>
       <div class="field">
@@ -555,7 +555,7 @@
         </div>
         <div class="hint">Don't know the size? Tap below to trace it on a satellite map.</div>
         <div class="measure-row">
-          <button type="button" class="measure-btn" data-measure="driveway" data-mode="area" data-input="driveway_sqft" data-label="Driveway">📐 Measure on satellite map</button>
+          <button type="button" class="measure-btn" data-measure="driveway" data-mode="area" data-input="driveway_sqft" data-label="Driveway">📐 Measure with SplashQuote</button>
         </div>
       </div>
       <div class="field">
@@ -578,7 +578,7 @@
         </div>
         <div class="hint">Don't know the size? Tap below to trace it on a satellite map.</div>
         <div class="measure-row">
-          <button type="button" class="measure-btn" data-measure="patio" data-mode="area" data-input="patio_sqft" data-label="Patio">📐 Measure on satellite map</button>
+          <button type="button" class="measure-btn" data-measure="patio" data-mode="area" data-input="patio_sqft" data-label="Patio">📐 Measure with SplashQuote</button>
         </div>
       </div>
       <div class="field">
@@ -601,7 +601,7 @@
         </div>
         <div class="hint">Don't know the size? Tap below to trace it on a satellite map.</div>
         <div class="measure-row">
-          <button type="button" class="measure-btn" data-measure="pavers" data-mode="area" data-input="pavers_sqft" data-label="Pavers">📐 Measure on satellite map</button>
+          <button type="button" class="measure-btn" data-measure="pavers" data-mode="area" data-input="pavers_sqft" data-label="Pavers">📐 Measure with SplashQuote</button>
         </div>
       </div>
       <div class="field">
@@ -624,7 +624,7 @@
         </div>
         <div class="hint">Don't know the size? Tap below to trace it on a satellite map.</div>
         <div class="measure-row">
-          <button type="button" class="measure-btn" data-measure="walkway" data-mode="area" data-input="walkway_sqft" data-label="Walkway">📐 Measure on satellite map</button>
+          <button type="button" class="measure-btn" data-measure="walkway" data-mode="area" data-input="walkway_sqft" data-label="Walkway">📐 Measure with SplashQuote</button>
         </div>
       </div>
       <div class="field">
@@ -647,7 +647,7 @@
         </div>
         <div class="hint">Approximate roof footprint (similar to house sq ft for single story)</div>
         <div class="measure-row">
-          <button type="button" class="measure-btn" data-measure="roof" data-mode="area" data-input="roof_sqft" data-label="Roof">📐 Measure on satellite map</button>
+          <button type="button" class="measure-btn" data-measure="roof" data-mode="area" data-input="roof_sqft" data-label="Roof">📐 Measure with SplashQuote</button>
         </div>
       </div>
       <div class="field">
@@ -670,7 +670,7 @@
         </div>
         <div class="hint">Measure the perimeter of your house at the roofline</div>
         <div class="measure-row">
-          <button type="button" class="measure-btn" data-measure="gutters" data-mode="perimeter" data-input="gutter_lnft" data-label="Gutters">📐 Measure on satellite map</button>
+          <button type="button" class="measure-btn" data-measure="gutters" data-mode="perimeter" data-input="gutter_lnft" data-label="Gutters">📐 Measure with SplashQuote</button>
         </div>
       </div>
       <div class="field">
@@ -808,7 +808,7 @@
   <!-- Trace-to-Measure panel (satellite) -->
   <div class="card measure-panel" id="measurePanel">
     <div class="measure-head">
-      <h2 id="measureTitle">Measure Your Surface</h2>
+      <h2 id="measureTitle">💦 SplashQuote</h2>
       <button type="button" class="measure-close" id="measureCloseBtn" aria-label="Close">×</button>
     </div>
     <div class="measure-hint" id="measureHint">Tap each corner of the area, then tap "Use this area".</div>
@@ -1608,10 +1608,7 @@ updateQuote();
 
   function openMeasure(opts) {
     const label = opts.label || opts.service;
-    $('measureTitle').textContent =
-      opts.mode === 'house' ? 'Measure Your House'
-      : opts.mode === 'perimeter' ? 'Measure Your Roofline'
-      : 'Measure: ' + label;
+    $('measureTitle').textContent = '💦 SplashQuote';
     $('measureHint').textContent =
       opts.mode === 'house' ? 'Trace the outline of your house — tap each corner of the roof edges, then close the loop.'
       : opts.mode === 'perimeter' ? 'Tap points along your roofline, all the way around the house.'
