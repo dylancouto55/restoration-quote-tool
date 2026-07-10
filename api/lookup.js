@@ -58,6 +58,10 @@ export default async function handler(req, res) {
       year_built: prop.yearBuilt || null,
       lot_size: prop.lotSize || null,
       property_type: prop.propertyType || null,
+      // Coordinates let the customer form center the satellite measure-tool
+      // on the house with no extra geocoding call.
+      lat: prop.latitude ?? null,
+      lng: prop.longitude ?? null,
       address: prop.formattedAddress || address,
       source: 'RentCast'
     };

@@ -254,6 +254,50 @@
   .measure-row { display: flex; gap: 8px; margin-top: 4px; }
   .measure-row .measure-btn { flex: 1; }
 
+  /* Trace-to-Measure panel (satellite) */
+  .measure-panel { display: none; }
+  .measure-panel.show { display: block; }
+  .measure-panel .measure-head {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    margin-bottom: 6px;
+  }
+  .measure-panel .measure-head h2 { margin-bottom: 0; }
+  .measure-close {
+    background: none; border: none; color: var(--muted);
+    font-size: 28px; line-height: 1; cursor: pointer; padding: 0 4px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .measure-hint { font-size: 12px; color: var(--muted); margin-bottom: 10px; line-height: 1.5; }
+  #measureSearch { margin-bottom: 10px; }
+  #measureMap {
+    height: 480px;
+    border-radius: 10px; overflow: hidden;
+    border: 1px solid var(--border);
+    background: var(--panel-2);
+  }
+  #measureReadout {
+    margin: 12px 0;
+    padding: 14px;
+    background: var(--panel-2);
+    border: 1px solid var(--accent);
+    border-radius: 10px;
+    text-align: center;
+    font-size: 19px; font-weight: 700;
+    color: var(--good);
+    font-variant-numeric: tabular-nums;
+  }
+  .measure-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .m-btn {
+    padding: 14px; border-radius: 10px; border: 1px solid var(--border);
+    background: var(--panel-2); color: var(--text);
+    font-size: 15px; font-weight: 600; font-family: inherit; cursor: pointer;
+    -webkit-tap-highlight-color: transparent; transition: all 0.15s;
+  }
+  .m-btn:active { transform: scale(0.98); }
+  .m-btn:hover { border-color: var(--accent); }
+  .m-btn.primary { background: var(--good); color: #0a1f0e; border-color: var(--good); }
+  .m-btn.primary:hover { background: #6ee395; }
+
   /* Preset buttons */
   .preset-row { display: flex; gap: 8px; flex-wrap: wrap; }
   .preset {
@@ -486,6 +530,12 @@
         </div>
       </div>
       <div class="field">
+        <div class="hint">Not sure of the size? Trace your house on the satellite map and we'll size it for you.</div>
+        <div class="measure-row">
+          <button type="button" class="measure-btn" data-measure="house_wash" data-mode="house" data-input="house_sqft" data-label="House">📐 Measure my house on the map</button>
+        </div>
+      </div>
+      <div class="field">
         <label>Wash Level</label>
         <div class="preset-row" data-service="house">
           <button type="button" class="preset" data-level="basic">Basic</button>
@@ -503,15 +553,83 @@
           <input type="number" id="driveway_sqft" value="600" min="0" step="50" />
           <span class="suffix">sq ft</span>
         </div>
-        <div class="hint">Don't know? Use the buttons below to measure</div>
+        <div class="hint">Don't know the size? Tap below to trace it on a satellite map.</div>
         <div class="measure-row">
-          <a class="measure-btn" id="measure_driveway_maps" target="_blank">📍 Google Maps</a>
-          <a class="measure-btn" id="measure_driveway_earth" target="_blank">🌍 Google Earth</a>
+          <button type="button" class="measure-btn" data-measure="driveway" data-mode="area" data-input="driveway_sqft" data-label="Driveway">📐 Measure on satellite map</button>
         </div>
       </div>
       <div class="field">
         <label>Surface Condition</label>
         <div class="preset-row" data-service="driveway">
+          <button type="button" class="preset" data-level="light">Light Dirt</button>
+          <button type="button" class="preset active" data-level="standard">Moderate</button>
+          <button type="button" class="preset" data-level="heavy">Heavy Stains</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="service-detail" id="detail-patio">
+      <h3>Patio Details</h3>
+      <div class="field">
+        <label for="patio_sqft">Patio Square Footage</label>
+        <div class="input-wrap has-suffix">
+          <input type="number" id="patio_sqft" value="300" min="0" step="50" />
+          <span class="suffix">sq ft</span>
+        </div>
+        <div class="hint">Don't know the size? Tap below to trace it on a satellite map.</div>
+        <div class="measure-row">
+          <button type="button" class="measure-btn" data-measure="patio" data-mode="area" data-input="patio_sqft" data-label="Patio">📐 Measure on satellite map</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Surface Condition</label>
+        <div class="preset-row" data-service="patio">
+          <button type="button" class="preset" data-level="light">Light Dirt</button>
+          <button type="button" class="preset active" data-level="standard">Moderate</button>
+          <button type="button" class="preset" data-level="heavy">Heavy Stains</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="service-detail" id="detail-pavers">
+      <h3>Paver Patio / Walk Details</h3>
+      <div class="field">
+        <label for="pavers_sqft">Paver Square Footage</label>
+        <div class="input-wrap has-suffix">
+          <input type="number" id="pavers_sqft" value="300" min="0" step="50" />
+          <span class="suffix">sq ft</span>
+        </div>
+        <div class="hint">Don't know the size? Tap below to trace it on a satellite map.</div>
+        <div class="measure-row">
+          <button type="button" class="measure-btn" data-measure="pavers" data-mode="area" data-input="pavers_sqft" data-label="Pavers">📐 Measure on satellite map</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Surface Condition</label>
+        <div class="preset-row" data-service="pavers">
+          <button type="button" class="preset" data-level="light">Light Dirt</button>
+          <button type="button" class="preset active" data-level="standard">Moderate</button>
+          <button type="button" class="preset" data-level="heavy">Heavy Stains</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="service-detail" id="detail-walkway">
+      <h3>Walkway / Sidewalk Details</h3>
+      <div class="field">
+        <label for="walkway_sqft">Walkway Square Footage</label>
+        <div class="input-wrap has-suffix">
+          <input type="number" id="walkway_sqft" value="200" min="0" step="50" />
+          <span class="suffix">sq ft</span>
+        </div>
+        <div class="hint">Don't know the size? Tap below to trace it on a satellite map.</div>
+        <div class="measure-row">
+          <button type="button" class="measure-btn" data-measure="walkway" data-mode="area" data-input="walkway_sqft" data-label="Walkway">📐 Measure on satellite map</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Surface Condition</label>
+        <div class="preset-row" data-service="walkway">
           <button type="button" class="preset" data-level="light">Light Dirt</button>
           <button type="button" class="preset active" data-level="standard">Moderate</button>
           <button type="button" class="preset" data-level="heavy">Heavy Stains</button>
@@ -529,8 +647,7 @@
         </div>
         <div class="hint">Approximate roof footprint (similar to house sq ft for single story)</div>
         <div class="measure-row">
-          <a class="measure-btn" id="measure_roof_maps" target="_blank">📍 Google Maps</a>
-          <a class="measure-btn" id="measure_roof_earth" target="_blank">🌍 Google Earth</a>
+          <button type="button" class="measure-btn" data-measure="roof" data-mode="area" data-input="roof_sqft" data-label="Roof">📐 Measure on satellite map</button>
         </div>
       </div>
       <div class="field">
@@ -553,8 +670,7 @@
         </div>
         <div class="hint">Measure the perimeter of your house at the roofline</div>
         <div class="measure-row">
-          <a class="measure-btn" id="measure_gutter_maps" target="_blank">📍 Google Maps</a>
-          <a class="measure-btn" id="measure_gutter_earth" target="_blank">🌍 Google Earth</a>
+          <button type="button" class="measure-btn" data-measure="gutters" data-mode="perimeter" data-input="gutter_lnft" data-label="Gutters">📐 Measure on satellite map</button>
         </div>
       </div>
       <div class="field">
@@ -689,6 +805,24 @@
     </p>
   </div>
 
+  <!-- Trace-to-Measure panel (satellite) -->
+  <div class="card measure-panel" id="measurePanel">
+    <div class="measure-head">
+      <h2 id="measureTitle">Measure Your Surface</h2>
+      <button type="button" class="measure-close" id="measureCloseBtn" aria-label="Close">×</button>
+    </div>
+    <div class="measure-hint" id="measureHint">Tap each corner of the area, then tap "Use this area".</div>
+    <input type="text" id="measureSearch" placeholder="Search an address or place…" autocomplete="off" />
+    <div id="measureMap"></div>
+    <div id="measureReadout">Tap at least 3 corners</div>
+    <div class="measure-actions">
+      <button type="button" class="m-btn" id="measureUndoBtn">↩ Undo point</button>
+      <button type="button" class="m-btn" id="measureClearBtn">✕ Clear</button>
+      <button type="button" class="m-btn" id="measureCancelBtn">Cancel</button>
+      <button type="button" class="m-btn primary" id="measureApplyBtn">Use this area</button>
+    </div>
+  </div>
+
   <footer>
     <div class="biz">Restoration Pressure Washing LLC</div>
     <div>248-602-3934 · Licensed &amp; Insured</div>
@@ -732,7 +866,10 @@
     },
     services: {
       house_wash: { enabled: true, min_price: 275, rates: { basic: 0.10, standard: 0.18, premium: 0.28 } },
-      driveway:   { enabled: true, min_price: 150, rates: { light: 0.18, standard: 0.25, heavy: 0.35 } },
+      driveway:   { enabled: true, name: 'Driveway / Concrete', min_price: 150, rates: { light: 0.18, standard: 0.25, heavy: 0.35 } },
+      patio:      { enabled: true, name: 'Patio',               min_price: 125, rates: { light: 0.20, standard: 0.28, heavy: 0.40 } },
+      pavers:     { enabled: true, name: 'Paver Patio / Walk',  min_price: 150, rates: { light: 0.25, standard: 0.35, heavy: 0.50 } },
+      walkway:    { enabled: true, name: 'Walkway / Sidewalk',  min_price: 100, rates: { light: 0.18, standard: 0.25, heavy: 0.35 } },
       roof:       { enabled: true, min_price: 350, rates: { light: 0.30, standard: 0.40, heavy: 0.55 } },
       gutters:    { enabled: true, min_price: 150, rates: { cleaning: 1.75, brightening: 2.50, both: 3.75 } },
       junk:       { enabled: true, tiers: {
@@ -758,14 +895,25 @@
     }
   };
 
+  let MAPS_KEY = null;
+
   async function loadConfig() {
     try {
       const response = await fetch('/api/settings');
       if (!response.ok) return; // fall back to defaults
       const data = await response.json();
+      if (data.maps_key) MAPS_KEY = data.maps_key;
       if (data.config && data.config.services) {
-        // Merge fetched config with defaults
-        CONFIG = { ...CONFIG, ...data.config };
+        // Merge fetched config with defaults. Services are merged BY KEY so a
+        // service defined in the code defaults (e.g. patio/pavers/walkway) still
+        // works even if the saved DB config predates it.
+        CONFIG = {
+          ...CONFIG,
+          ...data.config,
+          behavior: { ...CONFIG.behavior, ...(data.config.behavior || {}) },
+          business: { ...CONFIG.business, ...(data.config.business || {}) },
+          services:  { ...CONFIG.services, ...(data.config.services || {}) }
+        };
       }
     } catch (err) {
       console.warn('Could not load settings, using defaults:', err);
@@ -775,7 +923,10 @@
   // ===== Service Definitions =====
   const services = [
     { id: 'house_wash', icon: '🏠', title: 'House Wash', desc: 'Soft wash siding, soffits, and trim' },
-    { id: 'driveway',   icon: '🛣️', title: 'Driveway',   desc: 'Concrete, pavers, and walkways' },
+    { id: 'driveway',   icon: '🛣️', title: 'Driveway',   desc: 'Concrete driveway pressure washing' },
+    { id: 'patio',      icon: '🧱', title: 'Patio',      desc: 'Concrete patio cleaning' },
+    { id: 'pavers',     icon: '🔲', title: 'Pavers',     desc: 'Paver patios and walkways' },
+    { id: 'walkway',    icon: '🚶', title: 'Walkway',    desc: 'Sidewalks and walkways' },
     { id: 'roof',       icon: '🏚️', title: 'Roof Wash',  desc: 'Remove black streaks and algae' },
     { id: 'gutters',    icon: '🪣', title: 'Gutters',    desc: 'Clean out and exterior brightening' },
     { id: 'junk',       icon: '🗑️', title: 'Junk Removal', desc: 'Hauling and disposal' },
@@ -787,6 +938,9 @@
   const serviceLevels = {
     house: 'standard',
     driveway: 'standard',
+    patio: 'standard',
+    pavers: 'standard',
+    walkway: 'standard',
     roof: 'standard',
     gutters: 'cleaning',
     windows: 'standard',
@@ -794,10 +948,13 @@
   };
 
   // ===== Pricing Logic =====
-  function priceHouse(sqft, stories, level) {
+  function priceHouse(sqft, stories, level, measuredPerimeter) {
     const footprint = sqft / stories;
-    const sideLen = Math.sqrt(footprint);
-    const perimeter = sideLen * 4;
+    // Use the traced roofline when the house was measured on the map (accurate
+    // for L-shaped / non-square homes); otherwise assume a square footprint.
+    const perimeter = (measuredPerimeter && measuredPerimeter > 0)
+      ? measuredPerimeter
+      : Math.sqrt(footprint) * 4;
     const wallHeight = stories * 9 + 2;
     const exterior = Math.round((perimeter * wallHeight * 1.15) / 50) * 50;
 
@@ -813,15 +970,18 @@
     };
   }
 
-  function priceDriveway(sqft, level) {
-    const rate = CONFIG.services.driveway?.rates?.[level] || 0.25;
-    const minPrice = CONFIG.services.driveway?.min_price || 150;
+  // One pricing function for every flat concrete surface (driveway, patio,
+  // pavers, walkway). Each is a distinct service with its own rates + minimum.
+  function priceFlat(serviceId, sqft, level) {
+    const svc = CONFIG.services[serviceId] || {};
+    const rate = svc.rates?.[level] || 0.25;
+    const minPrice = svc.min_price || 150;
     const base = Math.max(sqft * rate, minPrice);
     return {
       low: Math.round(base * (1 - CONFIG.behavior.price_range_spread_low)),
       high: Math.round(base * (1 + CONFIG.behavior.price_range_spread_high)),
-      label: 'Driveway',
-      details: `${sqft.toLocaleString()} sq ft, ${level} cleaning`
+      label: svc.name || serviceId,
+      details: `${(+sqft).toLocaleString()} sq ft, ${level} cleaning`
     };
   }
 
@@ -940,7 +1100,8 @@
     if (selectedServices.has('house_wash')) {
       const sqft = +$('house_sqft').value || 2000;
       const stories = +$('house_stories').value || 1;
-      const p = priceHouse(sqft, stories, serviceLevels.house);
+      const prov = measured['house_wash'] || {};
+      const p = priceHouse(sqft, stories, serviceLevels.house, prov.perimeter);
       lines.push(p);
       totalLow += p.low;
       totalHigh += p.high;
@@ -951,23 +1112,32 @@
         sqft: sqft,
         stories: stories,
         level: serviceLevels.house,
+        measured: !!prov.measured, source: prov.measured ? 'map' : 'manual',
+        footprint: prov.footprint || null,
+        perimeter: prov.perimeter || null,
+        polygon: prov.polygon || null,
         price_low: p.low,
         price_high: p.high
       });
     }
 
-    if (selectedServices.has('driveway')) {
-      const sqft = +$('driveway_sqft').value || 600;
-      const p = priceDriveway(sqft, serviceLevels.driveway);
+    const FLAT_DEFAULTS = { driveway: 600, patio: 300, pavers: 300, walkway: 200 };
+    ['driveway', 'patio', 'pavers', 'walkway'].forEach(fid => {
+      if (!selectedServices.has(fid)) return;
+      const sqft = +$(fid + '_sqft').value || FLAT_DEFAULTS[fid];
+      const p = priceFlat(fid, sqft, serviceLevels[fid]);
       lines.push(p);
       totalLow += p.low;
       totalHigh += p.high;
+      const prov = measured[fid] || {};
       servicesData.push({
-        type: 'driveway', name: p.label, details: p.details,
-        sqft: sqft, level: serviceLevels.driveway,
+        type: fid, name: p.label, details: p.details,
+        sqft: sqft, level: serviceLevels[fid],
+        measured: !!prov.measured, source: prov.measured ? 'map' : 'manual',
+        polygon: prov.polygon || null,
         price_low: p.low, price_high: p.high
       });
-    }
+    });
 
     if (selectedServices.has('roof')) {
       const sqft = +$('roof_sqft').value || 1800;
@@ -975,9 +1145,12 @@
       lines.push(p);
       totalLow += p.low;
       totalHigh += p.high;
+      const provRoof = measured['roof'] || {};
       servicesData.push({
         type: 'roof', name: p.label, details: p.details,
         sqft: sqft, level: serviceLevels.roof,
+        measured: !!provRoof.measured, source: provRoof.measured ? 'map' : 'manual',
+        polygon: provRoof.polygon || null,
         price_low: p.low, price_high: p.high
       });
     }
@@ -988,9 +1161,12 @@
       lines.push(p);
       totalLow += p.low;
       totalHigh += p.high;
+      const provGut = measured['gutters'] || {};
       servicesData.push({
         type: 'gutters', name: p.label, details: p.details,
         lnft: lnft, level: serviceLevels.gutters,
+        measured: !!provGut.measured, source: provGut.measured ? 'map' : 'manual',
+        polygon: provGut.polygon || null,
         price_low: p.low, price_high: p.high
       });
     }
@@ -1098,11 +1274,32 @@
   }
 
   // Listen to all input changes
-  ['house_sqft', 'house_stories', 'driveway_sqft', 'roof_sqft', 'gutter_lnft', 'junk_volume', 'junk_description', 'window_count', 'window_type', 'guard_lnft']
+  ['house_sqft', 'driveway_sqft', 'patio_sqft', 'pavers_sqft', 'walkway_sqft', 'roof_sqft', 'gutter_lnft', 'junk_volume', 'junk_description', 'window_count', 'window_type', 'guard_lnft']
     .forEach(id => {
       $(id).addEventListener('input', updateQuote);
       $(id).addEventListener('change', updateQuote);
     });
+
+  // Stories drives the exterior-wall math. If the house was measured on the map,
+  // re-derive living-equivalent sqft from the stored footprint so the price stays
+  // correct when the customer changes the story count.
+  $('house_stories').addEventListener('change', () => {
+    const prov = measured['house_wash'];
+    if (prov && prov.footprint) {
+      $('house_sqft').value = Math.round(prov.footprint * (+$('house_stories').value || 1));
+    }
+    updateQuote();
+  });
+
+  // If the customer manually edits a measured field, drop the stale map provenance
+  // so the saved quote reflects the typed number rather than the old trace.
+  const MEASURE_INPUTS = {
+    house_sqft: 'house_wash', driveway_sqft: 'driveway', patio_sqft: 'patio',
+    pavers_sqft: 'pavers', walkway_sqft: 'walkway', roof_sqft: 'roof', gutter_lnft: 'gutters'
+  };
+  Object.entries(MEASURE_INPUTS).forEach(([inputId, svc]) => {
+    $(inputId).addEventListener('input', () => { delete measured[svc]; });
+  });
 
   // ===== Property Lookup =====
   async function lookupAddress() {
@@ -1120,9 +1317,6 @@
     btn.textContent = 'Looking up...';
     status.className = 'lookup-status show loading';
     status.innerHTML = '<span class="spinner"></span>Looking up property records...';
-
-    // Update measurement buttons with this address
-    updateMeasurementLinks(address);
 
     // Show Street View image of the property
       try {
@@ -1201,24 +1395,12 @@ updateQuote();
     }
   }
 
-  // Update Google Maps / Earth measurement buttons
-  function updateMeasurementLinks(address) {
-    const encoded = encodeURIComponent(address);
-    const mapsUrl = `https://www.google.com/maps/place/${encoded}`;
-    const earthUrl = `https://earth.google.com/web/search/${encoded}`;
-    ['driveway', 'roof', 'gutter'].forEach(svc => {
-      const m = $(`measure_${svc}_maps`);
-      const e = $(`measure_${svc}_earth`);
-      if (m) m.href = mapsUrl;
-      if (e) e.href = earthUrl;
-    });
-  }
+  // (Measurement is now handled in-app by the trace-to-measure panel above.)
 
   $('lookupBtn').addEventListener('click', lookupAddress);
   $('address').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') { e.preventDefault(); lookupAddress(); }
   });
-  $('address').addEventListener('input', () => updateMeasurementLinks($('address').value.trim()));
 
   // ===== Form Submission =====
   function validate() {
@@ -1386,6 +1568,244 @@ updateQuote();
     }
 
     $('window_type').addEventListener('change', () => applyToggleStates());
+
+  // ===== Trace-to-Measure (Google Maps satellite) =====
+  const FT2_PER_M2 = 10.7639;   // square meters -> square feet
+  const FT_PER_M   = 3.28084;   // meters -> feet
+  const fmtNum = (n) => Math.round(n).toLocaleString('en-US');
+  const MEASURE_LIMITS = {
+    area:      { min: 20,  max: 20000, unit: 'sq ft' },
+    house:     { min: 300, max: 12000, unit: 'sq ft' },
+    perimeter: { min: 40,  max: 600,   unit: 'ln ft' }
+  };
+
+  const measured = {};      // provenance keyed by service id (surfaces measured on the map)
+  let measureCtx = null;    // { service, mode, inputId, label, maps, map, poly, path }
+  let mapsPromise = null;
+
+  // Lazy-load the Maps JS API on first use (keeps the embed light; only bills
+  // a map load when a customer actually measures).
+  function loadMaps() {
+    if (mapsPromise) return mapsPromise;
+    mapsPromise = new Promise((resolve, reject) => {
+      if (window.google && window.google.maps && window.google.maps.geometry) {
+        return resolve(window.google.maps);
+      }
+      if (!MAPS_KEY) return reject(new Error('Maps key not configured'));
+      window.__gmapsReady = () => {
+        if (window.google && window.google.maps) resolve(window.google.maps);
+        else reject(new Error('Maps failed to initialize'));
+      };
+      const s = document.createElement('script');
+      s.src = 'https://maps.googleapis.com/maps/api/js?key=' + encodeURIComponent(MAPS_KEY)
+            + '&libraries=geometry,places&callback=__gmapsReady&loading=async&v=weekly';
+      s.async = true;
+      s.onerror = () => reject(new Error('Maps script failed to load'));
+      document.head.appendChild(s);
+    });
+    return mapsPromise;
+  }
+
+  function openMeasure(opts) {
+    const label = opts.label || opts.service;
+    $('measureTitle').textContent =
+      opts.mode === 'house' ? 'Measure Your House'
+      : opts.mode === 'perimeter' ? 'Measure Your Roofline'
+      : 'Measure: ' + label;
+    $('measureHint').textContent =
+      opts.mode === 'house' ? 'Trace the outline of your house — tap each corner of the roof edges, then close the loop.'
+      : opts.mode === 'perimeter' ? 'Tap points along your roofline, all the way around the house.'
+      : 'Tap each corner of the ' + label.toLowerCase() + '. Add at least 3 points, then tap "Use this area".';
+    $('measureApplyBtn').textContent = opts.mode === 'perimeter' ? 'Use this length' : 'Use this area';
+    $('measureReadout').textContent = 'Loading satellite map…';
+    $('formContainer').style.display = 'none';
+    $('measurePanel').classList.add('show');
+    window.scrollTo(0, 0);
+
+    loadMaps()
+      .then(maps => initMeasure(maps, opts))
+      .catch(err => {
+        console.warn('Measure tool unavailable:', err);
+        closeMeasure();
+        const addr = $('address').value.trim();
+        window.open('https://www.google.com/maps/place/' + encodeURIComponent(addr || ''), '_blank');
+        alert('Live map measuring isn\'t available right now — we opened Google Maps so you can measure there, or just type the square footage in the box.');
+      });
+  }
+
+  function initMeasure(maps, opts) {
+    const el = $('measureMap');
+    const pd = window._propertyData || {};
+    let center = { lat: 42.49, lng: -83.03 };  // Warren, MI (service-area fallback)
+    let zoom = 14;
+    if (pd.lat && pd.lng) { center = { lat: +pd.lat, lng: +pd.lng }; zoom = 20; }
+
+    const map = new maps.Map(el, {
+      center, zoom,
+      mapTypeId: 'hybrid',
+      tilt: 0,
+      gestureHandling: 'greedy',   // one-finger pan inside the iframe
+      disableDefaultUI: true,
+      zoomControl: true,
+      maxZoom: 22
+    });
+
+    const poly = new maps.Polygon({
+      map, editable: true, clickable: false,
+      strokeColor: '#4a9eff', strokeWeight: 2,
+      fillColor: '#4a9eff', fillOpacity: 0.25
+    });
+    const path = poly.getPath();
+
+    map.addListener('click', (e) => path.push(e.latLng));   // tap to drop a corner
+    const onChange = () => updateMeasureReadout();
+    maps.event.addListener(path, 'insert_at', onChange);
+    maps.event.addListener(path, 'set_at', onChange);
+    maps.event.addListener(path, 'remove_at', onChange);
+
+    measureCtx = Object.assign({}, opts, { maps, map, poly, path });
+
+    // No coordinates on file → geocode the typed address if we have one.
+    if (!(pd.lat && pd.lng)) {
+      const addr = $('address').value.trim();
+      if (addr && addr.length >= 8) {
+        try {
+          new maps.Geocoder().geocode({ address: addr }, (res, status) => {
+            if (status === 'OK' && res && res[0]) {
+              map.setCenter(res[0].geometry.location);
+              map.setZoom(res[0].geometry.location_type === 'ROOFTOP' ? 20 : 19);
+            }
+          });
+        } catch (e) { /* Geocoding API not enabled — rely on the search box */ }
+      }
+    }
+
+    // Optional in-panel Places search (lets the customer find their home even
+    // without entering an address up top).
+    try {
+      const searchInput = $('measureSearch');
+      if (searchInput && maps.places && maps.places.SearchBox) {
+        const box = new maps.places.SearchBox(searchInput);
+        map.addListener('bounds_changed', () => box.setBounds(map.getBounds()));
+        box.addListener('places_changed', () => {
+          const places = box.getPlaces();
+          if (!places || !places.length || !places[0].geometry) return;
+          const g = places[0].geometry;
+          if (g.viewport) map.fitBounds(g.viewport);
+          else { map.setCenter(g.location); map.setZoom(20); }
+        });
+      }
+    } catch (e) { /* Places API not enabled — fine */ }
+
+    updateMeasureReadout();
+  }
+
+  function measureAreaFt2() {
+    if (!measureCtx || measureCtx.path.getLength() < 3) return 0;
+    return measureCtx.maps.geometry.spherical.computeArea(measureCtx.path) * FT2_PER_M2;
+  }
+  function measurePerimeterFt() {
+    if (!measureCtx || measureCtx.path.getLength() < 2) return 0;
+    const pts = measureCtx.path.getArray().slice();
+    pts.push(pts[0]);  // close the ring so length spans all edges
+    return measureCtx.maps.geometry.spherical.computeLength(pts) * FT_PER_M;
+  }
+
+  function updateMeasureReadout() {
+    if (!measureCtx) return;
+    const n = measureCtx.path.getLength();
+    const el = $('measureReadout');
+    if (measureCtx.mode === 'perimeter') {
+      el.textContent = n < 2 ? ('Tap points along the roofline · ' + n)
+        : ('≈ ' + fmtNum(measurePerimeterFt()) + ' ln ft · ' + n + ' points');
+    } else {
+      el.textContent = n < 3 ? ('Tap at least 3 corners · ' + n + ' points')
+        : ('≈ ' + fmtNum(measureAreaFt2()) + ' sq ft · ' + n + ' points');
+    }
+  }
+
+  function measureUndo() { if (measureCtx && measureCtx.path.getLength()) { measureCtx.path.pop(); updateMeasureReadout(); } }
+  function measureClear() { if (measureCtx) { measureCtx.path.clear(); updateMeasureReadout(); } }
+
+  function measureApply() {
+    if (!measureCtx) return;
+    const { mode, service, inputId } = measureCtx;
+    const n = measureCtx.path.getLength();
+    const limits = MEASURE_LIMITS[mode] || MEASURE_LIMITS.area;
+
+    let value, provenance, checkVal;
+    if (mode === 'perimeter') {
+      if (n < 2) { alert('Add at least 2 points along the roofline first.'); return; }
+      const perim = Math.round(measurePerimeterFt());
+      value = Math.round(perim * 0.75);   // gutters run ~75% of the roofline
+      checkVal = value;
+      provenance = { measured: true, source: 'map', lnft: value, roofline_ft: perim, polygon: pathToArray() };
+    } else if (mode === 'house') {
+      if (n < 3) { alert('Trace at least 3 corners of the house first.'); return; }
+      const footprint = Math.round(measureAreaFt2());
+      const perimeter = Math.round(measurePerimeterFt());
+      const stories = +$('house_stories').value || 1;
+      value = Math.round(footprint * stories);   // living-equivalent so priceHouse recomputes this footprint
+      checkVal = footprint;
+      provenance = { measured: true, source: 'map', footprint, perimeter, stories, polygon: pathToArray() };
+    } else {
+      if (n < 3) { alert('Trace at least 3 corners of the area first.'); return; }
+      value = Math.round(measureAreaFt2() / 10) * 10;
+      checkVal = value;
+      provenance = { measured: true, source: 'map', sqft: value, polygon: pathToArray() };
+    }
+
+    if (checkVal < limits.min || checkVal > limits.max) {
+      const ok = confirm('That measures about ' + fmtNum(checkVal) + ' ' + limits.unit
+        + ', which looks ' + (checkVal < limits.min ? 'very small' : 'very large') + '. Use it anyway?');
+      if (!ok) return;
+    }
+
+    const input = $(inputId);
+    if (input) input.value = value;
+    measured[service] = provenance;
+    updateQuote();     // update the live quote (programmatic .value doesn't fire input listeners)
+    closeMeasure();
+  }
+
+  function pathToArray() {
+    if (!measureCtx) return [];
+    return measureCtx.path.getArray().map(ll => ({ lat: +ll.lat().toFixed(6), lng: +ll.lng().toFixed(6) }));
+  }
+
+  function closeMeasure() {
+    $('measurePanel').classList.remove('show');
+    $('formContainer').style.display = '';
+    if (measureCtx) {
+      try {
+        measureCtx.maps.event.clearInstanceListeners(measureCtx.map);
+        measureCtx.maps.event.clearInstanceListeners(measureCtx.path);
+        measureCtx.poly.setMap(null);
+      } catch (e) {}
+    }
+    measureCtx = null;
+    const si = $('measureSearch'); if (si) si.value = '';
+  }
+
+  // Measure-panel buttons
+  $('measureUndoBtn').addEventListener('click', measureUndo);
+  $('measureClearBtn').addEventListener('click', measureClear);
+  $('measureCancelBtn').addEventListener('click', closeMeasure);
+  $('measureCloseBtn').addEventListener('click', closeMeasure);
+  $('measureApplyBtn').addEventListener('click', measureApply);
+
+  // Delegated: any [data-measure] button opens the measure panel for that surface
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-measure]');
+    if (!b) return;
+    e.preventDefault();
+    openMeasure({
+      service: b.dataset.measure,
+      mode: b.dataset.mode || 'area',
+      inputId: b.dataset.input,
+      label: b.dataset.label || b.dataset.measure
+    });
+  });
 
     // ===== Init =====
   async function init() {

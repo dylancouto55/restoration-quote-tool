@@ -119,6 +119,24 @@ INSERT INTO settings (key, value) VALUES
           "heavy": 0.35
         }
       },
+      "patio": {
+        "enabled": true,
+        "name": "Patio",
+        "min_price": 125,
+        "rates": { "light": 0.20, "standard": 0.28, "heavy": 0.40 }
+      },
+      "pavers": {
+        "enabled": true,
+        "name": "Paver Patio / Walk",
+        "min_price": 150,
+        "rates": { "light": 0.25, "standard": 0.35, "heavy": 0.50 }
+      },
+      "walkway": {
+        "enabled": true,
+        "name": "Walkway / Sidewalk",
+        "min_price": 100,
+        "rates": { "light": 0.18, "standard": 0.25, "heavy": 0.35 }
+      },
       "roof": {
         "enabled": true,
         "name": "Roof Wash",
@@ -159,6 +177,25 @@ INSERT INTO settings (key, value) VALUES
     }
   }'::jsonb)
 ON CONFLICT (key) DO NOTHING;
+
+-- ------------------------------------------------------------
+-- MIGRATION for EXISTING installs (adds the flat-surface services)
+-- The INSERT above is a no-op once the 'config' row exists
+-- (ON CONFLICT DO NOTHING), so to add patio / pavers / walkway to a
+-- live config, run this ONCE in the Supabase SQL editor:
+--
+-- UPDATE settings SET value = jsonb_set(
+--   value, '{services}',
+--   (value->'services')
+--     || '{"patio":{"enabled":true,"name":"Patio","min_price":125,"rates":{"light":0.20,"standard":0.28,"heavy":0.40}}}'::jsonb
+--     || '{"pavers":{"enabled":true,"name":"Paver Patio / Walk","min_price":150,"rates":{"light":0.25,"standard":0.35,"heavy":0.50}}}'::jsonb
+--     || '{"walkway":{"enabled":true,"name":"Walkway / Sidewalk","min_price":100,"rates":{"light":0.18,"standard":0.25,"heavy":0.35}}}'::jsonb
+-- ) WHERE key = 'config';
+--
+-- Alternatively: after deploying, open the admin Settings tab and click
+-- "Save All Changes" once — that persists the whole config blob (including
+-- the new services rendered by the cloned rate editors).
+-- ------------------------------------------------------------
 
 -- ============================================================
 -- Row Level Security

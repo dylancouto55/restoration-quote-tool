@@ -26,7 +26,14 @@ export default async function handler(req, res) {
         .single();
 
       if (error) return res.status(500).json({ error: error.message });
-      return res.status(200).json({ config: data?.value || {} });
+      // maps_key is the Google Maps key the customer form's satellite measure
+      // tool loads client-side. Prefer a dedicated referrer-restricted browser
+      // key if one is set; otherwise reuse the existing Maps key the quote tool
+      // already uses server-side (GOOGLE_MAPS_API_KEY).
+      return res.status(200).json({
+        config: data?.value || {},
+        maps_key: process.env.GOOGLE_MAPS_BROWSER_KEY || process.env.GOOGLE_MAPS_API_KEY || null
+      });
     } catch (err) {
       return res.status(500).json({ error: err.message });
     }
