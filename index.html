@@ -476,7 +476,7 @@
 <div class="container">
 
   <header>
-    <h1>Get a Free Quote</h1>
+    <h1>Get a Free SplashQuote</h1>
     <div class="sub">Restoration Pressure Washing LLC · Licensed & Insured</div>
     <div class="accent-bar"></div>
   </header>
@@ -812,7 +812,7 @@
       <button type="button" class="measure-close" id="measureCloseBtn" aria-label="Close">×</button>
     </div>
     <div class="measure-hint" id="measureHint">Tap each corner of the area, then tap "Use this area".</div>
-    <input type="text" id="measureSearch" placeholder="Search an address or place…" autocomplete="off" />
+    <input type="text" id="measureSearch" placeholder="Search an address, then press Enter" autocomplete="off" />
     <div id="measureMap"></div>
     <div id="measureReadout">Tap at least 3 corners</div>
     <div class="measure-actions">
@@ -1598,7 +1598,7 @@ updateQuote();
       };
       const s = document.createElement('script');
       s.src = 'https://maps.googleapis.com/maps/api/js?key=' + encodeURIComponent(MAPS_KEY)
-            + '&libraries=geometry,places&callback=__gmapsReady&loading=async&v=weekly';
+            + '&libraries=geometry&callback=__gmapsReady&loading=async&v=weekly';
       s.async = true;
       s.onerror = () => reject(new Error('Maps script failed to load'));
       document.head.appendChild(s);
@@ -1677,22 +1677,27 @@ updateQuote();
       }
     }
 
-    // Optional in-panel Places search (lets the customer find their home even
-    // without entering an address up top).
-    try {
-      const searchInput = $('measureSearch');
-      if (searchInput && maps.places && maps.places.SearchBox) {
-        const box = new maps.places.SearchBox(searchInput);
-        map.addListener('bounds_changed', () => box.setBounds(map.getBounds()));
-        box.addListener('places_changed', () => {
-          const places = box.getPlaces();
-          if (!places || !places.length || !places[0].geometry) return;
-          const g = places[0].geometry;
-          if (g.viewport) map.fitBounds(g.viewport);
-          else { map.setCenter(g.location); map.setZoom(20); }
-        });
-      }
-    } catch (e) { /* Places API not enabled — fine */ }
+    // In-panel search: geocode the typed text and recenter the map. Uses the
+    // Geocoding API (core Maps), NOT the legacy Places SearchBox (which isn't
+    // available to new projects and would poison the whole map with an auth error).
+    const searchInput = $('measureSearch');
+    if (searchInput) {
+      searchInput.addEventListener('keydown', (ev) => {
+        if (ev.key !== 'Enter') return;
+        ev.preventDefault();
+        const q = searchInput.value.trim();
+        if (!q) return;
+        try {
+          new maps.Geocoder().geocode({ address: q }, (res, status) => {
+            if (status === 'OK' && res && res[0]) {
+              const geo = res[0].geometry;
+              if (geo.viewport) map.fitBounds(geo.viewport);
+              else { map.setCenter(geo.location); map.setZoom(20); }
+            }
+          });
+        } catch (e) { /* Geocoding unavailable — customer can pan the map */ }
+      });
+    }
 
     updateMeasureReadout();
   }
