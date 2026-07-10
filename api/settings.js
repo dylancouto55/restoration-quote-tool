@@ -18,6 +18,12 @@ export default async function handler(req, res) {
 
   // GET - public, returns config
   if (req.method === 'GET') {
+    // maps_key is the Google Maps key the customer form's satellite measure tool
+    // loads client-side. Prefer a dedicated referrer-restricted browser key if
+    // one is set; otherwise reuse the existing Maps key the quote tool already
+    // uses server-side. Returned even if the config lookup fails, so the measure
+    // tool keeps working (the form falls back to its built-in default rates).
+    const maps_key = process.env.GOOGLE_MAPS_BROWSER_KEY || process.env.GOOGLE_MAPS_API_KEY || null;
     try {
       const { data, error } = await supabase
         .from('settings')
@@ -25,17 +31,11 @@ export default async function handler(req, res) {
         .eq('key', 'config')
         .single();
 
-      if (error) return res.status(500).json({ error: error.message });
-      // maps_key is the Google Maps key the customer form's satellite measure
-      // tool loads client-side. Prefer a dedicated referrer-restricted browser
-      // key if one is set; otherwise reuse the existing Maps key the quote tool
-      // already uses server-side (GOOGLE_MAPS_API_KEY).
-      return res.status(200).json({
-        config: data?.value || {},
-        maps_key: process.env.GOOGLE_MAPS_BROWSER_KEY || process.env.GOOGLE_MAPS_API_KEY || null
-      });
+      if (error) throw error;
+      return res.status(200).json({ config: data?.value || {}, maps_key });
     } catch (err) {
-      return res.status(500).json({ error: err.message });
+      console.error('settings GET: config load failed:', err.message);
+      return res.status(200).json({ config: {}, maps_key, config_error: err.message });
     }
   }
 
