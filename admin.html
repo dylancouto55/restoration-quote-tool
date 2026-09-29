@@ -1173,6 +1173,16 @@
   let allQuotes = [];
   let activeFilter = 'all';
 
+  // A paused Supabase project has no DNS record, so every call fails with a bare
+  // network error. Say what that means instead of "Failed to fetch".
+  const DB_DOWN_MSG = 'Can\'t reach the database. The Supabase project is probably paused: '
+    + 'sign in at supabase.com/dashboard, open the project and click Restore. It takes a few minutes.';
+  function friendlyError(msg) {
+    const m = String(msg || '');
+    return /failed to fetch|fetch failed|networkerror|load failed|bad gateway|schema cache/i.test(m)
+      ? DB_DOWN_MSG : m;
+  }
+
   // ===== Auth =====
   async function checkAuth() {
     const { data: { session } } = await supabase.auth.getSession();
@@ -1199,13 +1209,18 @@
     btn.textContent = 'Signing in...';
     errEl.textContent = '';
 
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    let data, error;
+    try {
+      ({ data, error } = await supabase.auth.signInWithPassword({ email, password }));
+    } catch (err) {
+      error = err;
+    }
 
     btn.disabled = false;
     btn.textContent = 'Sign In';
 
     if (error) {
-      errEl.textContent = error.message;
+      errEl.textContent = friendlyError(error.message);
       return;
     }
     currentSession = data.session;
@@ -1259,7 +1274,7 @@
       renderStats();
       renderList();
     } catch (err) {
-      $('quoteList').innerHTML = `<div class="empty-state">Error loading quotes: ${err.message}</div>`;
+      $('quoteList').innerHTML = `<div class="empty-state">Error loading quotes: ${friendlyError(err.message)}</div>`;
     }
   }
 
@@ -1535,6 +1550,10 @@
       const response = await fetch('/api/settings');
       const data = await response.json();
       if (!response.ok) throw new Error(data.error);
+      // /api/settings answers 200 with an empty config when the database is down
+      // (so the customer form keeps working). Never load that into the editor:
+      // saving it would overwrite the real rates with blanks.
+      if (data.config_error) throw new Error(data.config_error);
 
       currentConfig = data.config;
       originalConfig = JSON.parse(JSON.stringify(currentConfig)); // deep clone
@@ -1544,7 +1563,7 @@
       settingsLoaded = true;
       markClean();
     } catch (err) {
-      $('settingsLoading').innerHTML = `<div class="loading-state" style="color: var(--bad);">Error loading settings: ${err.message}</div>`;
+      $('settingsLoading').innerHTML = `<div class="loading-state" style="color: var(--bad);">Error loading settings: ${friendlyError(err.message)}</div>`;
     }
   }
 
