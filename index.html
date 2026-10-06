@@ -672,7 +672,7 @@
         </div>
         <div class="hint">Measure the perimeter of your house at the roofline</div>
         <div class="measure-row">
-          <button type="button" class="measure-btn" data-measure="gutters" data-mode="perimeter" data-input="gutter_lnft" data-label="Gutters">📐 Measure with SplashQuote</button>
+          <button type="button" class="measure-btn" data-measure="gutters" data-mode="line" data-input="gutter_lnft" data-label="Gutters">📐 Measure with SplashQuote</button>
         </div>
       </div>
       <div class="field">
@@ -729,7 +729,10 @@
           <input type="number" id="guard_lnft" value="120" min="0" step="10" />
           <span class="suffix">ln ft</span>
         </div>
-        <div class="hint">Same as your gutter length at the roofline</div>
+        <div class="hint">Same as your gutter length at the roofline. Or trace the gutter line on the map.</div>
+        <div class="measure-row">
+          <button type="button" class="measure-btn" data-measure="gutter_guards" data-mode="line" data-input="guard_lnft" data-label="Gutter Guards">📐 Measure with SplashQuote</button>
+        </div>
       </div>
       <div class="field">
         <label>Guard Type</label>
@@ -1207,9 +1210,12 @@
       lines.push(p);
       totalLow += p.low;
       totalHigh += p.high;
+      const provGG = measured['gutter_guards'] || {};
       servicesData.push({
         type: 'gutter_guards', name: p.label, details: p.details,
         lnft: lnft, level: serviceLevels.gutter_guards,
+        measured: !!provGG.measured, source: provGG.measured ? 'map' : 'manual',
+        polygon: provGG.polygon || null,
         price_low: p.low, price_high: p.high
       });
     }
@@ -1297,7 +1303,8 @@
   // so the saved quote reflects the typed number rather than the old trace.
   const MEASURE_INPUTS = {
     house_sqft: 'house_wash', driveway_sqft: 'driveway', patio_sqft: 'patio',
-    pavers_sqft: 'pavers', walkway_sqft: 'walkway', roof_sqft: 'roof', gutter_lnft: 'gutters'
+    pavers_sqft: 'pavers', walkway_sqft: 'walkway', roof_sqft: 'roof', gutter_lnft: 'gutters',
+    guard_lnft: 'gutter_guards'
   };
   Object.entries(MEASURE_INPUTS).forEach(([inputId, svc]) => {
     $(inputId).addEventListener('input', () => { delete measured[svc]; });
@@ -1578,7 +1585,7 @@ updateQuote();
   const MEASURE_LIMITS = {
     area:      { min: 20,  max: 20000, unit: 'sq ft' },
     house:     { min: 300, max: 12000, unit: 'sq ft' },
-    perimeter: { min: 40,  max: 600,   unit: 'ln ft' }
+    line:      { min: 10,  max: 1000,  unit: 'ln ft' }
   };
 
   const measured = {};      // provenance keyed by service id (surfaces measured on the map)
@@ -1613,9 +1620,9 @@ updateQuote();
     $('measureTitle').textContent = '💦 SplashQuote';
     $('measureHint').textContent =
       opts.mode === 'house' ? 'Trace the outline of your house — tap each corner of the roof edges, then close the loop.'
-      : opts.mode === 'perimeter' ? 'Tap points along your roofline, all the way around the house.'
+      : opts.mode === 'line' ? 'Tap along the gutter from one end to the other — each tap adds a corner. The line stays open; it does not need to close.'
       : 'Tap each corner of the ' + label.toLowerCase() + '. Tap the first (green) dot — or "Use this area" — to finish.';
-    $('measureApplyBtn').textContent = opts.mode === 'perimeter' ? 'Use this length' : 'Use this area';
+    $('measureApplyBtn').textContent = opts.mode === 'line' ? 'Use this length' : 'Use this area';
     $('measureReadout').textContent = 'Loading satellite map…';
     $('formContainer').style.display = 'none';
     $('measurePanel').classList.add('show');
@@ -1653,11 +1660,18 @@ updateQuote();
     // Outline only — NOT editable (no drag handles / midpoint ghosts). The
     // customer taps corners, segments connect them, and tapping the first
     // (green) dot closes the loop — like Google Earth's measure tool.
-    const poly = new maps.Polygon({
-      map, editable: false, clickable: false,
-      strokeColor: '#4a9eff', strokeWeight: 2,
-      fillColor: '#4a9eff', fillOpacity: 0.20
-    });
+    // Gutters / gutter guards measure linear footage, so they get an OPEN line
+    // (a Polyline) that is never closed back to the start.
+    const poly = opts.mode === 'line'
+      ? new maps.Polyline({
+          map, editable: false, clickable: false,
+          strokeColor: '#4a9eff', strokeWeight: 3
+        })
+      : new maps.Polygon({
+          map, editable: false, clickable: false,
+          strokeColor: '#4a9eff', strokeWeight: 2,
+          fillColor: '#4a9eff', fillOpacity: 0.20
+        });
 
     measureCtx = Object.assign({}, opts, { maps, map, poly, path: poly.getPath(), markers: [] });
 
@@ -1700,7 +1714,7 @@ updateQuote();
     if (!measureCtx) return;
     const maps = measureCtx.maps;
     measureCtx.path.push(latLng);
-    const isFirst = measureCtx.markers.length === 0;
+    const isFirst = measureCtx.markers.length === 0 && measureCtx.mode !== 'line';
     const marker = new maps.Marker({
       position: latLng,
       map: measureCtx.map,
@@ -1776,7 +1790,7 @@ updateQuote();
   function measurePerimeterFt() {
     if (!measureCtx || measureCtx.path.getLength() < 2) return 0;
     const pts = measureCtx.path.getArray().slice();
-    pts.push(pts[0]);  // close the ring so length spans all edges
+    if (measureCtx.mode !== 'line') pts.push(pts[0]);  // closed shapes: include the edge back to start
     return measureCtx.maps.geometry.spherical.computeLength(pts) * FT_PER_M;
   }
 
@@ -1784,8 +1798,8 @@ updateQuote();
     if (!measureCtx) return;
     const n = measureCtx.path.getLength();
     const el = $('measureReadout');
-    if (measureCtx.mode === 'perimeter') {
-      el.textContent = n < 2 ? ('Tap points along the roofline · ' + n)
+    if (measureCtx.mode === 'line') {
+      el.textContent = n < 2 ? ('Tap the start of the gutter, then along it · ' + n + (n === 1 ? ' point' : ' points'))
         : ('≈ ' + fmtNum(measurePerimeterFt()) + ' ln ft · ' + n + ' points');
     } else {
       el.textContent = n < 3 ? ('Tap at least 3 corners · ' + n + ' points')
@@ -1815,12 +1829,11 @@ updateQuote();
     const limits = MEASURE_LIMITS[mode] || MEASURE_LIMITS.area;
 
     let value, provenance, checkVal;
-    if (mode === 'perimeter') {
-      if (n < 2) { alert('Add at least 2 points along the roofline first.'); return; }
-      const perim = Math.round(measurePerimeterFt());
-      value = Math.round(perim * 0.75);   // gutters run ~75% of the roofline
+    if (mode === 'line') {
+      if (n < 2) { alert('Tap at least 2 points along the gutter first.'); return; }
+      value = Math.round(measurePerimeterFt());   // open line: the traced length is the footage
       checkVal = value;
-      provenance = { measured: true, source: 'map', lnft: value, roofline_ft: perim, polygon: pathToArray() };
+      provenance = { measured: true, source: 'map', lnft: value, polygon: pathToArray() };
     } else if (mode === 'house') {
       if (n < 3) { alert('Trace at least 3 corners of the house first.'); return; }
       const footprint = Math.round(measureAreaFt2());
