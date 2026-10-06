@@ -268,7 +268,9 @@
     -webkit-tap-highlight-color: transparent;
   }
   .measure-hint { font-size: 12px; color: var(--muted); margin-bottom: 10px; line-height: 1.5; }
-  #measureSearch { margin-bottom: 10px; }
+  #measureSearchWrap { margin-bottom: 10px; }
+  #measureSearchWrap gmp-place-autocomplete { width: 100%; display: block; }
+  #measureSearchWrap input { width: 100%; }
   #measureMap {
     height: 480px;
     border-radius: 10px; overflow: hidden;
@@ -287,6 +289,7 @@
     font-variant-numeric: tabular-nums;
   }
   .measure-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .measure-actions .m-btn.wide { grid-column: 1 / -1; }
   .m-btn {
     padding: 14px; border-radius: 10px; border: 1px solid var(--border);
     background: var(--panel-2); color: var(--text);
@@ -670,7 +673,7 @@
         </div>
         <div class="hint">Measure the perimeter of your house at the roofline</div>
         <div class="measure-row">
-          <button type="button" class="measure-btn" data-measure="gutters" data-mode="perimeter" data-input="gutter_lnft" data-label="Gutters">📐 Measure with SplashQuote</button>
+          <button type="button" class="measure-btn" data-measure="gutters" data-mode="line" data-input="gutter_lnft" data-label="Gutters">📐 Measure with SplashQuote</button>
         </div>
       </div>
       <div class="field">
@@ -727,7 +730,10 @@
           <input type="number" id="guard_lnft" value="120" min="0" step="10" />
           <span class="suffix">ln ft</span>
         </div>
-        <div class="hint">Same as your gutter length at the roofline</div>
+        <div class="hint">Same as your gutter length at the roofline. Or trace the gutter line on the map.</div>
+        <div class="measure-row">
+          <button type="button" class="measure-btn" data-measure="gutter_guards" data-mode="line" data-input="guard_lnft" data-label="Gutter Guards">📐 Measure with SplashQuote</button>
+        </div>
       </div>
       <div class="field">
         <label>Guard Type</label>
@@ -812,10 +818,11 @@
       <button type="button" class="measure-close" id="measureCloseBtn" aria-label="Close">×</button>
     </div>
     <div class="measure-hint" id="measureHint">Tap each corner of the area, then tap "Use this area".</div>
-    <input type="text" id="measureSearch" placeholder="Search an address, then press Enter" autocomplete="off" />
+    <div id="measureSearchWrap"></div>
     <div id="measureMap"></div>
     <div id="measureReadout">Tap at least 3 corners</div>
     <div class="measure-actions">
+      <button type="button" class="m-btn wide" id="measureNewRunBtn" style="display:none">➕ Add another gutter run</button>
       <button type="button" class="m-btn" id="measureUndoBtn">↩ Undo point</button>
       <button type="button" class="m-btn" id="measureClearBtn">✕ Clear</button>
       <button type="button" class="m-btn" id="measureCancelBtn">Cancel</button>
@@ -1205,9 +1212,12 @@
       lines.push(p);
       totalLow += p.low;
       totalHigh += p.high;
+      const provGG = measured['gutter_guards'] || {};
       servicesData.push({
         type: 'gutter_guards', name: p.label, details: p.details,
         lnft: lnft, level: serviceLevels.gutter_guards,
+        measured: !!provGG.measured, source: provGG.measured ? 'map' : 'manual',
+        polygon: provGG.polygon || null,
         price_low: p.low, price_high: p.high
       });
     }
@@ -1295,7 +1305,8 @@
   // so the saved quote reflects the typed number rather than the old trace.
   const MEASURE_INPUTS = {
     house_sqft: 'house_wash', driveway_sqft: 'driveway', patio_sqft: 'patio',
-    pavers_sqft: 'pavers', walkway_sqft: 'walkway', roof_sqft: 'roof', gutter_lnft: 'gutters'
+    pavers_sqft: 'pavers', walkway_sqft: 'walkway', roof_sqft: 'roof', gutter_lnft: 'gutters',
+    guard_lnft: 'gutter_guards'
   };
   Object.entries(MEASURE_INPUTS).forEach(([inputId, svc]) => {
     $(inputId).addEventListener('input', () => { delete measured[svc]; });
@@ -1576,7 +1587,7 @@ updateQuote();
   const MEASURE_LIMITS = {
     area:      { min: 20,  max: 20000, unit: 'sq ft' },
     house:     { min: 300, max: 12000, unit: 'sq ft' },
-    perimeter: { min: 40,  max: 600,   unit: 'ln ft' }
+    line:      { min: 10,  max: 1000,  unit: 'ln ft' }
   };
 
   const measured = {};      // provenance keyed by service id (surfaces measured on the map)
@@ -1598,7 +1609,7 @@ updateQuote();
       };
       const s = document.createElement('script');
       s.src = 'https://maps.googleapis.com/maps/api/js?key=' + encodeURIComponent(MAPS_KEY)
-            + '&libraries=geometry&callback=__gmapsReady&loading=async&v=weekly';
+            + '&libraries=geometry,places&callback=__gmapsReady&loading=async&v=weekly';
       s.async = true;
       s.onerror = () => reject(new Error('Maps script failed to load'));
       document.head.appendChild(s);
@@ -1611,9 +1622,10 @@ updateQuote();
     $('measureTitle').textContent = '💦 SplashQuote';
     $('measureHint').textContent =
       opts.mode === 'house' ? 'Trace the outline of your house — tap each corner of the roof edges, then close the loop.'
-      : opts.mode === 'perimeter' ? 'Tap points along your roofline, all the way around the house.'
-      : 'Tap each corner of the ' + label.toLowerCase() + '. Add at least 3 points, then tap "Use this area".';
-    $('measureApplyBtn').textContent = opts.mode === 'perimeter' ? 'Use this length' : 'Use this area';
+      : opts.mode === 'line' ? 'Tap along a gutter from one end to the other. Gutters on another side of the house? Tap "Add another gutter run" and trace that one too — the footage adds up.'
+      : 'Tap each corner of the ' + label.toLowerCase() + '. Tap the first (green) dot — or "Use this area" — to finish.';
+    $('measureApplyBtn').textContent = opts.mode === 'line' ? 'Use this length' : 'Use this area';
+    $('measureNewRunBtn').style.display = opts.mode === 'line' ? '' : 'none';
     $('measureReadout').textContent = 'Loading satellite map…';
     $('formContainer').style.display = 'none';
     $('measurePanel').classList.add('show');
@@ -1644,27 +1656,33 @@ updateQuote();
       gestureHandling: 'greedy',   // one-finger pan inside the iframe
       disableDefaultUI: true,
       zoomControl: true,
+      clickableIcons: false,       // don't let POI pins hijack corner taps
       maxZoom: 22
     });
 
-    const poly = new maps.Polygon({
-      map, editable: true, clickable: false,
-      strokeColor: '#4a9eff', strokeWeight: 2,
-      fillColor: '#4a9eff', fillOpacity: 0.25
-    });
-    const path = poly.getPath();
+    // Outline only — NOT editable (no drag handles / midpoint ghosts). The
+    // customer taps corners, segments connect them, and tapping the first
+    // (green) dot closes the loop — like Google Earth's measure tool.
+    // Gutters / gutter guards measure linear footage, so they get an OPEN line
+    // (a Polyline) that is never closed back to the start.
+    const poly = opts.mode === 'line'
+      ? new maps.Polyline({
+          map, editable: false, clickable: false,
+          strokeColor: '#4a9eff', strokeWeight: 3
+        })
+      : new maps.Polygon({
+          map, editable: false, clickable: false,
+          strokeColor: '#4a9eff', strokeWeight: 2,
+          fillColor: '#4a9eff', fillOpacity: 0.20
+        });
 
-    map.addListener('click', (e) => path.push(e.latLng));   // tap to drop a corner
-    const onChange = () => updateMeasureReadout();
-    maps.event.addListener(path, 'insert_at', onChange);
-    maps.event.addListener(path, 'set_at', onChange);
-    maps.event.addListener(path, 'remove_at', onChange);
+    measureCtx = Object.assign({}, opts, { maps, map, poly, path: poly.getPath(), markers: [], runs: [] });
 
-    measureCtx = Object.assign({}, opts, { maps, map, poly, path });
+    map.addListener('click', (e) => addMeasurePoint(e.latLng));   // tap to drop a corner
 
-    // No coordinates on file → geocode the typed address if we have one.
+    // Center on the typed address if we don't already have coordinates.
     if (!(pd.lat && pd.lng)) {
-      const addr = $('address').value.trim();
+      const addr = $('address') ? $('address').value.trim() : '';
       if (addr && addr.length >= 8) {
         try {
           new maps.Geocoder().geocode({ address: addr }, (res, status) => {
@@ -1673,61 +1691,185 @@ updateQuote();
               map.setZoom(res[0].geometry.location_type === 'ROOFTOP' ? 20 : 19);
             }
           });
-        } catch (e) { /* Geocoding API not enabled — rely on the search box */ }
+        } catch (e) {}
       }
     }
 
-    // In-panel search: geocode the typed text and recenter the map. Uses the
-    // Geocoding API (core Maps), NOT the legacy Places SearchBox (which isn't
-    // available to new projects and would poison the whole map with an auth error).
-    const searchInput = $('measureSearch');
-    if (searchInput) {
-      searchInput.addEventListener('keydown', (ev) => {
-        if (ev.key !== 'Enter') return;
-        ev.preventDefault();
-        const q = searchInput.value.trim();
-        if (!q) return;
-        try {
-          new maps.Geocoder().geocode({ address: q }, (res, status) => {
-            if (status === 'OK' && res && res[0]) {
-              const geo = res[0].geometry;
-              if (geo.viewport) map.fitBounds(geo.viewport);
-              else { map.setCenter(geo.location); map.setZoom(20); }
-            }
-          });
-        } catch (e) { /* Geocoding unavailable — customer can pan the map */ }
-      });
-    }
+    try { setupMeasureSearch(maps, map); } catch (e) { /* search is optional */ }
 
     updateMeasureReadout();
+  }
+
+  // A small circle dot for each traced corner. The first is green + larger and
+  // acts as the "close the loop" target.
+  function vertexIcon(maps, isFirst) {
+    return {
+      path: maps.SymbolPath.CIRCLE,
+      scale: isFirst ? 7 : 5,
+      fillColor: isFirst ? '#4ade80' : '#4a9eff',
+      fillOpacity: 1,
+      strokeColor: '#ffffff',
+      strokeWeight: 2
+    };
+  }
+
+  function addMeasurePoint(latLng) {
+    if (!measureCtx) return;
+    const maps = measureCtx.maps;
+    measureCtx.path.push(latLng);
+    const isFirst = measureCtx.markers.length === 0 && measureCtx.mode !== 'line';
+    const marker = new maps.Marker({
+      position: latLng,
+      map: measureCtx.map,
+      icon: vertexIcon(maps, isFirst),
+      clickable: isFirst,               // only the first dot is clickable (to close)
+      cursor: isFirst ? 'pointer' : 'default',
+      zIndex: isFirst ? 999 : 1,
+      title: isFirst ? 'Tap to close the shape' : ''
+    });
+    if (isFirst) {
+      marker.addListener('click', () => {
+        if (measureCtx && measureCtx.path.getLength() >= 3) measureApply();  // close = finish
+      });
+    }
+    measureCtx.markers.push(marker);
+    updateMeasureReadout();
+  }
+
+  // In-panel address auto-suggest using the NEW Places API
+  // (PlaceAutocompleteElement). Falls back to plain Enter-to-geocode if the new
+  // element isn't available. Does NOT use the legacy SearchBox/Autocomplete.
+  function setupMeasureSearch(maps, map) {
+    const wrap = $('measureSearchWrap');
+    if (!wrap) return;
+    wrap.innerHTML = '';
+    if (maps.places && maps.places.PlaceAutocompleteElement) {
+      const pac = new maps.places.PlaceAutocompleteElement();
+      try { pac.setAttribute('placeholder', 'Search an address…'); } catch (e) {}
+      pac.style.width = '100%';
+      wrap.appendChild(pac);
+      const onSelect = async (ev) => {
+        try {
+          const pred = ev.placePrediction || (ev.detail && ev.detail.placePrediction);
+          const place = pred ? pred.toPlace() : (ev.place || (ev.detail && ev.detail.place));
+          if (!place) return;
+          if (place.fetchFields) await place.fetchFields({ fields: ['location', 'viewport'] });
+          if (place.viewport) map.fitBounds(place.viewport);
+          else if (place.location) { map.setCenter(place.location); map.setZoom(20); }
+        } catch (e) {}
+      };
+      pac.addEventListener('gmp-select', onSelect);
+      pac.addEventListener('gmp-placeselect', onSelect);
+      return;
+    }
+    // Fallback: plain input, geocode on Enter.
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.placeholder = 'Search an address, then press Enter';
+    input.autocomplete = 'off';
+    input.style.width = '100%';
+    wrap.appendChild(input);
+    input.addEventListener('keydown', (ev) => {
+      if (ev.key !== 'Enter') return;
+      ev.preventDefault();
+      const q = input.value.trim();
+      if (!q) return;
+      try {
+        new maps.Geocoder().geocode({ address: q }, (res, status) => {
+          if (status === 'OK' && res && res[0]) {
+            const geo = res[0].geometry;
+            if (geo.viewport) map.fitBounds(geo.viewport);
+            else { map.setCenter(geo.location); map.setZoom(20); }
+          }
+        });
+      } catch (e) {}
+    });
   }
 
   function measureAreaFt2() {
     if (!measureCtx || measureCtx.path.getLength() < 3) return 0;
     return measureCtx.maps.geometry.spherical.computeArea(measureCtx.path) * FT2_PER_M2;
   }
-  function measurePerimeterFt() {
-    if (!measureCtx || measureCtx.path.getLength() < 2) return 0;
-    const pts = measureCtx.path.getArray().slice();
-    pts.push(pts[0]);  // close the ring so length spans all edges
+  function lengthFt(path, closed) {
+    if (!measureCtx || path.getLength() < 2) return 0;
+    const pts = path.getArray().slice();
+    if (closed) pts.push(pts[0]);  // closed shapes: include the edge back to start
     return measureCtx.maps.geometry.spherical.computeLength(pts) * FT_PER_M;
+  }
+  function measurePerimeterFt() {
+    return measureCtx ? lengthFt(measureCtx.path, measureCtx.mode !== 'line') : 0;
+  }
+  // Line mode: finished runs + the run being traced.
+  function measureLineTotalFt() {
+    if (!measureCtx) return 0;
+    return measureCtx.runs.reduce((s, r) => s + lengthFt(r.path, false), 0) + lengthFt(measureCtx.path, false);
+  }
+
+  // Line mode: freeze the current gutter run and start a new, disconnected one.
+  function measureNewRun() {
+    if (!measureCtx || measureCtx.mode !== 'line') return;
+    if (measureCtx.path.getLength() < 2) { alert('Tap at least 2 points on this run before starting another.'); return; }
+    const maps = measureCtx.maps;
+    measureCtx.poly.setOptions({ strokeColor: '#4ade80' });          // finished runs show green
+    measureCtx.markers.forEach(m => m.setIcon(Object.assign(vertexIcon(maps, false), { fillColor: '#4ade80' })));
+    measureCtx.runs.push({ poly: measureCtx.poly, path: measureCtx.path, markers: measureCtx.markers });
+    const poly = new maps.Polyline({
+      map: measureCtx.map, editable: false, clickable: false,
+      strokeColor: '#4a9eff', strokeWeight: 3
+    });
+    measureCtx.poly = poly;
+    measureCtx.path = poly.getPath();
+    measureCtx.markers = [];
+    updateMeasureReadout();
   }
 
   function updateMeasureReadout() {
     if (!measureCtx) return;
     const n = measureCtx.path.getLength();
     const el = $('measureReadout');
-    if (measureCtx.mode === 'perimeter') {
-      el.textContent = n < 2 ? ('Tap points along the roofline · ' + n)
-        : ('≈ ' + fmtNum(measurePerimeterFt()) + ' ln ft · ' + n + ' points');
+    if (measureCtx.mode === 'line') {
+      const runs = measureCtx.runs.length;
+      const total = measureLineTotalFt();
+      if (n < 2 && runs === 0) {
+        el.textContent = 'Tap the start of the gutter, then along it · ' + n + (n === 1 ? ' point' : ' points');
+      } else if (runs === 0) {
+        el.textContent = '≈ ' + fmtNum(total) + ' ln ft · ' + n + ' points';
+      } else {
+        const cur = lengthFt(measureCtx.path, false);
+        el.textContent = '≈ ' + fmtNum(total) + ' ln ft total · ' + (runs + (n >= 2 ? 1 : 0)) + ' runs'
+          + (n >= 2 ? ' · this run ' + fmtNum(cur) + ' ft' : n === 1 ? ' · tap the next point' : ' · tap to start the next run');
+      }
     } else {
       el.textContent = n < 3 ? ('Tap at least 3 corners · ' + n + ' points')
-        : ('≈ ' + fmtNum(measureAreaFt2()) + ' sq ft · ' + n + ' points');
+        : ('≈ ' + fmtNum(measureAreaFt2()) + ' sq ft · ' + n + ' pts · tap the green dot to close');
     }
   }
 
-  function measureUndo() { if (measureCtx && measureCtx.path.getLength()) { measureCtx.path.pop(); updateMeasureReadout(); } }
-  function measureClear() { if (measureCtx) { measureCtx.path.clear(); updateMeasureReadout(); } }
+  function measureUndo() {
+    if (!measureCtx) return;
+    if (!measureCtx.path.getLength()) {
+      // Current run is empty: reopen the previous run so its points can be undone too.
+      const prev = measureCtx.runs.pop();
+      if (!prev) return;
+      measureCtx.poly.setMap(null);
+      prev.poly.setOptions({ strokeColor: '#4a9eff' });
+      prev.markers.forEach(m => m.setIcon(vertexIcon(measureCtx.maps, false)));
+      measureCtx.poly = prev.poly; measureCtx.path = prev.path; measureCtx.markers = prev.markers;
+    }
+    measureCtx.path.pop();
+    const m = measureCtx.markers.pop();
+    if (m) m.setMap(null);
+    updateMeasureReadout();
+  }
+  function measureClear() {
+    if (!measureCtx) return;
+    measureCtx.runs.forEach(r => { r.poly.setMap(null); r.markers.forEach(m => m.setMap(null)); });
+    measureCtx.runs = [];
+    measureCtx.path.clear();
+    measureCtx.markers.forEach(m => m.setMap(null));
+    measureCtx.markers = [];
+    updateMeasureReadout();
+  }
 
   function measureApply() {
     if (!measureCtx) return;
@@ -1736,12 +1878,11 @@ updateQuote();
     const limits = MEASURE_LIMITS[mode] || MEASURE_LIMITS.area;
 
     let value, provenance, checkVal;
-    if (mode === 'perimeter') {
-      if (n < 2) { alert('Add at least 2 points along the roofline first.'); return; }
-      const perim = Math.round(measurePerimeterFt());
-      value = Math.round(perim * 0.75);   // gutters run ~75% of the roofline
+    if (mode === 'line') {
+      if (n < 2 && measureCtx.runs.length === 0) { alert('Tap at least 2 points along the gutter first.'); return; }
+      value = Math.round(measureLineTotalFt());   // open lines: traced length(s) added up
       checkVal = value;
-      provenance = { measured: true, source: 'map', lnft: value, roofline_ft: perim, polygon: pathToArray() };
+      provenance = { measured: true, source: 'map', lnft: value, runs: measureCtx.runs.length + (n >= 2 ? 1 : 0), polygon: pathToArray() };
     } else if (mode === 'house') {
       if (n < 3) { alert('Trace at least 3 corners of the house first.'); return; }
       const footprint = Math.round(measureAreaFt2());
@@ -1772,7 +1913,13 @@ updateQuote();
 
   function pathToArray() {
     if (!measureCtx) return [];
-    return measureCtx.path.getArray().map(ll => ({ lat: +ll.lat().toFixed(6), lng: +ll.lng().toFixed(6) }));
+    const toArr = (p) => p.getArray().map(ll => ({ lat: +ll.lat().toFixed(6), lng: +ll.lng().toFixed(6) }));
+    if (measureCtx.mode === 'line' && measureCtx.runs.length) {
+      const all = measureCtx.runs.map(r => toArr(r.path));
+      if (measureCtx.path.getLength() >= 2) all.push(toArr(measureCtx.path));
+      return all;   // array of runs
+    }
+    return toArr(measureCtx.path);
   }
 
   function closeMeasure() {
@@ -1780,17 +1927,19 @@ updateQuote();
     $('formContainer').style.display = '';
     if (measureCtx) {
       try {
+        (measureCtx.markers || []).forEach(m => m.setMap(null));
+        (measureCtx.runs || []).forEach(r => { r.poly.setMap(null); r.markers.forEach(m => m.setMap(null)); });
         measureCtx.maps.event.clearInstanceListeners(measureCtx.map);
-        measureCtx.maps.event.clearInstanceListeners(measureCtx.path);
         measureCtx.poly.setMap(null);
       } catch (e) {}
     }
     measureCtx = null;
-    const si = $('measureSearch'); if (si) si.value = '';
+    const wrap = $('measureSearchWrap'); if (wrap) wrap.innerHTML = '';
   }
 
   // Measure-panel buttons
   $('measureUndoBtn').addEventListener('click', measureUndo);
+  $('measureNewRunBtn').addEventListener('click', measureNewRun);
   $('measureClearBtn').addEventListener('click', measureClear);
   $('measureCancelBtn').addEventListener('click', closeMeasure);
   $('measureCloseBtn').addEventListener('click', closeMeasure);
