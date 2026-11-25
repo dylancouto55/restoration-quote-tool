@@ -261,6 +261,13 @@
             <div class="field"><label for="xmas_wreaths">Wreaths</label><input type="number" id="xmas_wreaths" value="0" min="0" step="1" /></div>
           </div>
         </div>
+
+        <!-- Permanent Lights -->
+        <div class="service-detail" id="detail-permanent_lights">
+          <h3>Permanent Lights</h3>
+          <div class="field"><label for="perm_lnft">Roofline Linear Footage</label><div class="input-wrap has-suffix"><input type="number" id="perm_lnft" value="100" min="0" step="10" /><span class="suffix">ln ft</span></div></div>
+          <div class="field"><label>Mounting</label><div class="preset-row" data-service="permanent_lights"><button type="button" class="preset" data-level="no_track">Without Tracks</button><button type="button" class="preset active" data-level="track">With Tracks</button></div></div>
+        </div>
       </div>
 
       <!-- Quote Results -->
@@ -397,6 +404,14 @@
         <div class="rate-row"><label>Per Wreath</label><input type="number" id="rate_xl_wreath" value="60" step="5" style="width:80px;" /><span class="unit">$</span></div>
       </div>
 
+      <!-- Permanent Lights Rates -->
+      <div class="settings-section" id="settings-permanent_lights">
+        <h3>Permanent Lights</h3>
+        <div class="rate-row"><label>Min Price</label><input type="number" id="rate_pl_min" value="2000" step="50" style="width:80px;" /><span class="unit">$</span></div>
+        <div class="rate-row"><label>Without Tracks</label><input type="number" id="rate_pl_notrack" value="25" step="0.5" style="width:80px;" /><span class="unit">$/lf</span></div>
+        <div class="rate-row"><label>With Tracks</label><input type="number" id="rate_pl_track" value="30" step="0.5" style="width:80px;" /><span class="unit">$/lf</span></div>
+      </div>
+
     </div>
   </div>
 </div>
@@ -460,7 +475,8 @@ function getDefaults() {
       junk: { enabled: true, tiers: { single:{low:75,high:150}, quarter:{low:150,high:250}, half:{low:250,high:400}, threequarter:{low:400,high:550}, full:{low:550,high:750} } },
       window_cleaning: { enabled: true, min_price: 150, rates: { exterior_light:5, exterior_standard:7, exterior_heavy:10, both_light:8, both_standard:12, both_heavy:16 } },
       gutter_guards: { enabled: true, min_price: 300, rates: { mesh: 6, micro_mesh: 9, solid: 12 } },
-      christmas_lights: { enabled: true, min_price: 600, rates: { roofline: 7, tree: 100, bush: 35, wreath: 60 } }
+      christmas_lights: { enabled: true, min_price: 600, rates: { roofline: 7, tree: 100, bush: 35, wreath: 60 } },
+      permanent_lights: { enabled: true, min_price: 2000, rates: { no_track: 25, track: 30 } }
     }
   };
 }
@@ -524,6 +540,10 @@ function populateSettingsPanel() {
   $('rate_xl_tree').value = s.christmas_lights?.rates?.tree ?? 100;
   $('rate_xl_bush').value = s.christmas_lights?.rates?.bush ?? 35;
   $('rate_xl_wreath').value = s.christmas_lights?.rates?.wreath ?? 60;
+  // Permanent lights
+  $('rate_pl_min').value = s.permanent_lights?.min_price ?? 2000;
+  $('rate_pl_notrack').value = s.permanent_lights?.rates?.no_track ?? 25;
+  $('rate_pl_track').value = s.permanent_lights?.rates?.track ?? 30;
 }
 
 // ===== Read Settings Sidebar into CONFIG =====
@@ -551,6 +571,9 @@ function readSettingsPanel() {
   if (!s.christmas_lights.rates) s.christmas_lights.rates = {};
   s.christmas_lights.min_price = +$('rate_xl_min').value; s.christmas_lights.rates.roofline = +$('rate_xl_roofline').value;
   s.christmas_lights.rates.tree = +$('rate_xl_tree').value; s.christmas_lights.rates.bush = +$('rate_xl_bush').value; s.christmas_lights.rates.wreath = +$('rate_xl_wreath').value;
+  if (!s.permanent_lights) s.permanent_lights = { enabled: true, rates: {} };
+  if (!s.permanent_lights.rates) s.permanent_lights.rates = {};
+  s.permanent_lights.min_price = +$('rate_pl_min').value; s.permanent_lights.rates.no_track = +$('rate_pl_notrack').value; s.permanent_lights.rates.track = +$('rate_pl_track').value;
 }
 
 // Listen to all settings inputs
@@ -567,10 +590,11 @@ const services = [
   { id:'junk', icon:'ðï¸', title:'Junk Removal', desc:'Hauling & disposal' },
   { id:'window_cleaning', icon:'ðª', title:'Windows', desc:'Interior & exterior' },
   { id:'gutter_guards', icon:'ð¡ï¸', title:'Gutter Guards', desc:'Guard installation' },
-  { id:'christmas_lights', icon:'🎄', title:'Christmas Lights', desc:'Roofline, trees & bushes' }
+  { id:'christmas_lights', icon:'🎄', title:'Christmas Lights', desc:'Roofline, trees & bushes' },
+  { id:'permanent_lights', icon:'💡', title:'Permanent Lights', desc:'Year-round roofline lighting' }
 ];
 const selectedServices = new Set();
-const serviceLevels = { house:'standard', driveway:'standard', roof:'standard', gutters:'cleaning', windows:'standard', gutter_guards:'micro_mesh' };
+const serviceLevels = { house:'standard', driveway:'standard', roof:'standard', gutters:'cleaning', windows:'standard', gutter_guards:'micro_mesh', permanent_lights:'track' };
 
 function buildServiceGrid() {
   const grid = $('serviceGrid');
@@ -645,6 +669,13 @@ function priceGutterGuards(lnft, type) {
   return { low: Math.round(base * (1 - CONFIG.behavior.price_range_spread_low)), high: Math.round(base * (1 + CONFIG.behavior.price_range_spread_high)), label: 'Gutter Guards', details: lnft + ' ln ft, ' + type.replace('_','-') };
 }
 
+function pricePermanent(lnft, level) {
+  const svc = CONFIG.services.permanent_lights || {};
+  const num = (v, d) => (typeof v === 'number' && !isNaN(v)) ? v : d;
+  const rate = num((svc.rates || {})[level], level === 'no_track' ? 25 : 30);
+  const base = Math.max(lnft * rate, num(svc.min_price, 2000));
+  return { low: Math.round(base * (1 - CONFIG.behavior.price_range_spread_low)), high: Math.round(base * (1 + CONFIG.behavior.price_range_spread_high)), label: 'Permanent Lights', details: lnft + ' ln ft roofline, ' + (level === 'no_track' ? 'without tracks' : 'with tracks') };
+}
 function priceChristmas(lnft, trees, bushes, wreaths) {
   const svc = CONFIG.services.christmas_lights || {}; const r = svc.rates || {};
   const num = (v, d) => (typeof v === 'number' && !isNaN(v)) ? v : d;
@@ -667,6 +698,7 @@ function updateQuote() {
   if (selectedServices.has('window_cleaning')) { const p = priceWindows(+$('window_count').value||15, $('window_type').value, serviceLevels.windows); lines.push(p); tLow+=p.low; tHigh+=p.high; }
   if (selectedServices.has('gutter_guards')) { const p = priceGutterGuards(+$('guard_lnft').value||120, serviceLevels.gutter_guards); lines.push(p); tLow+=p.low; tHigh+=p.high; }
   if (selectedServices.has('christmas_lights')) { const c = id => Math.max(0, Math.round(+$(id).value || 0)); const p = priceChristmas(c('xmas_lnft'), c('xmas_trees'), c('xmas_bushes'), c('xmas_wreaths')); lines.push(p); tLow+=p.low; tHigh+=p.high; }
+  if (selectedServices.has('permanent_lights')) { const p = pricePermanent(Math.max(0, Math.round(+$('perm_lnft').value || 0)), serviceLevels.permanent_lights); lines.push(p); tLow+=p.low; tHigh+=p.high; }
 
   const dp = CONFIG.behavior.bundle_discount_percent || 0;
   const dt = CONFIG.behavior.bundle_discount_threshold || 3;
@@ -684,7 +716,7 @@ function updateQuote() {
 }
 
 // Input listeners
-['house_sqft','house_stories','driveway_sqft','roof_sqft','gutter_lnft','junk_volume','junk_description','window_count','window_type','guard_lnft','xmas_lnft','xmas_trees','xmas_bushes','xmas_wreaths'].forEach(id => {
+['house_sqft','house_stories','driveway_sqft','roof_sqft','gutter_lnft','junk_volume','junk_description','window_count','window_type','guard_lnft','xmas_lnft','xmas_trees','xmas_bushes','xmas_wreaths','perm_lnft'].forEach(id => {
   $(id).addEventListener('input', updateQuote);
   $(id).addEventListener('change', updateQuote);
 });
@@ -764,13 +796,13 @@ $('newQuoteBtn').addEventListener('click', () => {
   $('gutter_lnft').value = 120; $('guard_lnft').value = 120;
   $('window_count').value = 15; $('window_type').value = 'exterior';
   $('junk_volume').value = 'quarter'; $('junk_description').value = '';
-  $('xmas_lnft').value = 100; $('xmas_trees').value = 0; $('xmas_bushes').value = 0; $('xmas_wreaths').value = 0;
+  $('xmas_lnft').value = 100; $('xmas_trees').value = 0; $('xmas_bushes').value = 0; $('xmas_wreaths').value = 0; $('perm_lnft').value = 100;
   $('jobNotes').value = '';
   // Reset presets
   document.querySelectorAll('.preset-row').forEach(row => {
     row.querySelectorAll('.preset').forEach((b,i) => { b.classList.toggle('active', i===1); });
   });
-  Object.assign(serviceLevels, {house:'standard',driveway:'standard',roof:'standard',gutters:'cleaning',windows:'standard',gutter_guards:'micro_mesh'});
+  Object.assign(serviceLevels, {house:'standard',driveway:'standard',roof:'standard',gutters:'cleaning',windows:'standard',gutter_guards:'micro_mesh',permanent_lights:'track'});
   // Reset gutters preset
   const gutRow = document.querySelector('.preset-row[data-service="gutters"]');
   if (gutRow) { gutRow.querySelectorAll('.preset').forEach((b,i) => b.classList.toggle('active', i===0)); }

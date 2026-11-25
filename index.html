@@ -783,6 +783,29 @@
         </div>
       </div>
     </div>
+
+    <div class="service-detail" id="detail-permanent_lights">
+      <h3>Permanent Lights Details</h3>
+      <div class="field">
+        <label for="perm_lnft">Roofline to Light</label>
+        <div class="input-wrap has-suffix">
+          <input type="number" id="perm_lnft" value="100" min="0" step="10" />
+          <span class="suffix">ln ft</span>
+        </div>
+        <div class="hint">The length of roofline you want lit. Don't know it? Trace it on a satellite map.</div>
+        <div class="measure-row">
+          <button type="button" class="measure-btn" data-measure="permanent_lights" data-mode="line" data-input="perm_lnft" data-label="Permanent Lights" data-noun="roofline">📐 Measure with SplashQuote</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Mounting</label>
+        <div class="preset-row" data-service="permanent_lights">
+          <button type="button" class="preset" data-level="no_track">Without Tracks</button>
+          <button type="button" class="preset active" data-level="track">With Tracks</button>
+        </div>
+        <div class="hint">Tracks hide the lights and wiring in a channel that matches your trim.</div>
+      </div>
+    </div>
   </div>
 
   <!-- Estimated Quote Display -->
@@ -938,6 +961,12 @@
         name: 'Christmas Lights',
         min_price: 600,
         rates: { roofline: 7, tree: 100, bush: 35, wreath: 60 }
+      },
+      permanent_lights: {
+        enabled: true,
+        name: 'Permanent Lights',
+        min_price: 2000,
+        rates: { no_track: 25, track: 30 }
       }
     }
   };
@@ -979,7 +1008,8 @@
     { id: 'junk',       icon: '🗑️', title: 'Junk Removal', desc: 'Hauling and disposal' },
         { id: 'window_cleaning', icon: '🪟', title: 'Window Cleaning', desc: 'Interior and exterior window washing' },
         { id: 'gutter_guards',    icon: '🛡️', title: 'Gutter Guards',   desc: 'Guard installation to prevent clogs' },
-    { id: 'christmas_lights', icon: '🎄', title: 'Christmas Lights', desc: 'Roofline, trees and bushes' }
+    { id: 'christmas_lights', icon: '🎄', title: 'Christmas Lights', desc: 'Roofline, trees and bushes' },
+    { id: 'permanent_lights', icon: '💡', title: 'Permanent Lights', desc: 'Year-round roofline lighting' }
   ];
 
   const selectedServices = new Set();
@@ -992,7 +1022,8 @@
     roof: 'standard',
     gutters: 'cleaning',
     windows: 'standard',
-    gutter_guards: 'micro_mesh'
+    gutter_guards: 'micro_mesh',
+    permanent_lights: 'track'
   };
 
   // ===== Pricing Logic =====
@@ -1085,6 +1116,20 @@
       high: Math.round(base * (1 + CONFIG.behavior.price_range_spread_high)),
       label: 'Gutter Guards',
       details: lnft + ' ln ft, ' + type.replace('_', '-')
+    };
+  }
+
+  // Permanent lights: per linear foot of roofline, priced with or without tracks.
+  function pricePermanent(lnft, level) {
+    const svc = CONFIG.services.permanent_lights || {};
+    const num = (v, d) => (typeof v === 'number' && !isNaN(v)) ? v : d;
+    const rate = num((svc.rates || {})[level], level === 'no_track' ? 25 : 30);
+    const base = Math.max(lnft * rate, num(svc.min_price, 2000));
+    return {
+      low: Math.round(base * (1 - CONFIG.behavior.price_range_spread_low)),
+      high: Math.round(base * (1 + CONFIG.behavior.price_range_spread_high)),
+      label: svc.name || 'Permanent Lights',
+      details: lnft.toLocaleString() + ' ln ft roofline, ' + (level === 'no_track' ? 'without tracks' : 'with tracks')
     };
   }
 
@@ -1302,6 +1347,22 @@
       });
     }
 
+    if (selectedServices.has('permanent_lights')) {
+      const lnft = Math.max(0, Math.round(+$('perm_lnft').value || 0));
+      const p = pricePermanent(lnft, serviceLevels.permanent_lights);
+      lines.push(p);
+      totalLow += p.low;
+      totalHigh += p.high;
+      const provP = measured['permanent_lights'] || {};
+      servicesData.push({
+        type: 'permanent_lights', name: p.label, details: p.details,
+        lnft: lnft, level: serviceLevels.permanent_lights,
+        measured: !!provP.measured, source: provP.measured ? 'map' : 'manual',
+        polygon: provP.polygon || null,
+        price_low: p.low, price_high: p.high
+      });
+    }
+
     // Multi-service discount based on config
     const discountPct = CONFIG.behavior.bundle_discount_percent || 0;
     const threshold = CONFIG.behavior.bundle_discount_threshold || 3;
@@ -1364,7 +1425,7 @@
   }
 
   // Listen to all input changes
-  ['house_sqft', 'driveway_sqft', 'patio_sqft', 'pavers_sqft', 'walkway_sqft', 'roof_sqft', 'gutter_lnft', 'junk_volume', 'junk_description', 'window_count', 'window_type', 'guard_lnft', 'xmas_lnft', 'xmas_trees', 'xmas_bushes', 'xmas_wreaths']
+  ['house_sqft', 'driveway_sqft', 'patio_sqft', 'pavers_sqft', 'walkway_sqft', 'roof_sqft', 'gutter_lnft', 'junk_volume', 'junk_description', 'window_count', 'window_type', 'guard_lnft', 'xmas_lnft', 'xmas_trees', 'xmas_bushes', 'xmas_wreaths', 'perm_lnft']
     .forEach(id => {
       $(id).addEventListener('input', updateQuote);
       $(id).addEventListener('change', updateQuote);
@@ -1386,7 +1447,8 @@
   const MEASURE_INPUTS = {
     house_sqft: 'house_wash', driveway_sqft: 'driveway', patio_sqft: 'patio',
     pavers_sqft: 'pavers', walkway_sqft: 'walkway', roof_sqft: 'roof', gutter_lnft: 'gutters',
-    guard_lnft: 'gutter_guards', xmas_lnft: 'christmas_lights'
+    guard_lnft: 'gutter_guards', xmas_lnft: 'christmas_lights',
+    perm_lnft: 'permanent_lights'
   };
   Object.entries(MEASURE_INPUTS).forEach(([inputId, svc]) => {
     $(inputId).addEventListener('input', () => { delete measured[svc]; });
@@ -1600,7 +1662,8 @@ updateQuote();
       roof: 'roof',
       gutters: 'gutters',
       windows: 'window_cleaning',
-      gutter_guards: 'gutter_guards'
+      gutter_guards: 'gutter_guards',
+      permanent_lights: 'permanent_lights'
     };
 
     function applyToggleStates() {
