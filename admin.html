@@ -744,20 +744,20 @@
             <div class="row-3">
               <div class="field">
                 <label><input type="checkbox" class="sub-toggle" data-rate-toggle="patio.light" checked> Light Rate ($/sq ft)</label>
-                <div class="input-wrap"><span class="prefix">$</span><input type="number" data-rate="patio.light" step="0.01" min="0" /></div>
+                <div class="input-wrap"><span class="prefix">$</span><input type="number" data-rate="patio.light" step="0.01" min="0" value="0.2" /></div>
               </div>
               <div class="field">
                 <label><input type="checkbox" class="sub-toggle" data-rate-toggle="patio.standard" checked> Standard Rate</label>
-                <div class="input-wrap"><span class="prefix">$</span><input type="number" data-rate="patio.standard" step="0.01" min="0" /></div>
+                <div class="input-wrap"><span class="prefix">$</span><input type="number" data-rate="patio.standard" step="0.01" min="0" value="0.28" /></div>
               </div>
               <div class="field">
                 <label><input type="checkbox" class="sub-toggle" data-rate-toggle="patio.heavy" checked> Heavy Rate</label>
-                <div class="input-wrap"><span class="prefix">$</span><input type="number" data-rate="patio.heavy" step="0.01" min="0" /></div>
+                <div class="input-wrap"><span class="prefix">$</span><input type="number" data-rate="patio.heavy" step="0.01" min="0" value="0.4" /></div>
               </div>
             </div>
             <div class="field">
               <label>Minimum Job Price</label>
-              <div class="input-wrap"><span class="prefix">$</span><input type="number" data-min="patio" step="5" min="0" /></div>
+              <div class="input-wrap"><span class="prefix">$</span><input type="number" data-min="patio" step="5" min="0" value="125" /></div>
             </div>
           </div>
 
@@ -772,20 +772,20 @@
             <div class="row-3">
               <div class="field">
                 <label><input type="checkbox" class="sub-toggle" data-rate-toggle="pavers.light" checked> Light Rate ($/sq ft)</label>
-                <div class="input-wrap"><span class="prefix">$</span><input type="number" data-rate="pavers.light" step="0.01" min="0" /></div>
+                <div class="input-wrap"><span class="prefix">$</span><input type="number" data-rate="pavers.light" step="0.01" min="0" value="0.25" /></div>
               </div>
               <div class="field">
                 <label><input type="checkbox" class="sub-toggle" data-rate-toggle="pavers.standard" checked> Standard Rate</label>
-                <div class="input-wrap"><span class="prefix">$</span><input type="number" data-rate="pavers.standard" step="0.01" min="0" /></div>
+                <div class="input-wrap"><span class="prefix">$</span><input type="number" data-rate="pavers.standard" step="0.01" min="0" value="0.35" /></div>
               </div>
               <div class="field">
                 <label><input type="checkbox" class="sub-toggle" data-rate-toggle="pavers.heavy" checked> Heavy Rate</label>
-                <div class="input-wrap"><span class="prefix">$</span><input type="number" data-rate="pavers.heavy" step="0.01" min="0" /></div>
+                <div class="input-wrap"><span class="prefix">$</span><input type="number" data-rate="pavers.heavy" step="0.01" min="0" value="0.5" /></div>
               </div>
             </div>
             <div class="field">
               <label>Minimum Job Price</label>
-              <div class="input-wrap"><span class="prefix">$</span><input type="number" data-min="pavers" step="5" min="0" /></div>
+              <div class="input-wrap"><span class="prefix">$</span><input type="number" data-min="pavers" step="5" min="0" value="150" /></div>
             </div>
           </div>
 
@@ -800,20 +800,20 @@
             <div class="row-3">
               <div class="field">
                 <label><input type="checkbox" class="sub-toggle" data-rate-toggle="walkway.light" checked> Light Rate ($/sq ft)</label>
-                <div class="input-wrap"><span class="prefix">$</span><input type="number" data-rate="walkway.light" step="0.01" min="0" /></div>
+                <div class="input-wrap"><span class="prefix">$</span><input type="number" data-rate="walkway.light" step="0.01" min="0" value="0.18" /></div>
               </div>
               <div class="field">
                 <label><input type="checkbox" class="sub-toggle" data-rate-toggle="walkway.standard" checked> Standard Rate</label>
-                <div class="input-wrap"><span class="prefix">$</span><input type="number" data-rate="walkway.standard" step="0.01" min="0" /></div>
+                <div class="input-wrap"><span class="prefix">$</span><input type="number" data-rate="walkway.standard" step="0.01" min="0" value="0.25" /></div>
               </div>
               <div class="field">
                 <label><input type="checkbox" class="sub-toggle" data-rate-toggle="walkway.heavy" checked> Heavy Rate</label>
-                <div class="input-wrap"><span class="prefix">$</span><input type="number" data-rate="walkway.heavy" step="0.01" min="0" /></div>
+                <div class="input-wrap"><span class="prefix">$</span><input type="number" data-rate="walkway.heavy" step="0.01" min="0" value="0.35" /></div>
               </div>
             </div>
             <div class="field">
               <label>Minimum Job Price</label>
-              <div class="input-wrap"><span class="prefix">$</span><input type="number" data-min="walkway" step="5" min="0" /></div>
+              <div class="input-wrap"><span class="prefix">$</span><input type="number" data-min="walkway" step="5" min="0" value="100" /></div>
             </div>
           </div>
 
@@ -988,6 +988,38 @@
             </div>
           </div>
         
+          <div class="service-section" data-service="christmas_lights">
+            <div class="service-header">
+              <h3>🎄 Christmas Lights</h3>
+              <label class="switch"><input type="checkbox" checked data-toggle="christmas_lights"><span class="slider"></span></label>
+            </div>
+            <p class="settings-desc">Roofline per linear foot, plus per-item add-ons. The minimum covers the whole lighting job.</p>
+            <div class="row-3">
+              <div class="field">
+                <label>Roofline ($/ln ft)</label>
+                <div class="input-wrap"><span class="prefix">$</span><input type="number" step="0.5" min="0" data-rate="christmas_lights.roofline" value="7"></div>
+              </div>
+              <div class="field">
+                <label>Per Tree</label>
+                <div class="input-wrap"><span class="prefix">$</span><input type="number" step="5" min="0" data-rate="christmas_lights.tree" value="100"></div>
+              </div>
+              <div class="field">
+                <label>Per Bush</label>
+                <div class="input-wrap"><span class="prefix">$</span><input type="number" step="5" min="0" data-rate="christmas_lights.bush" value="35"></div>
+              </div>
+            </div>
+            <div class="row-3">
+              <div class="field">
+                <label>Per Wreath</label>
+                <div class="input-wrap"><span class="prefix">$</span><input type="number" step="5" min="0" data-rate="christmas_lights.wreath" value="60"></div>
+              </div>
+              <div class="field">
+                <label>Minimum Job Price</label>
+                <div class="input-wrap"><span class="prefix">$</span><input type="number" step="1" min="0" data-min="christmas_lights" value="600"></div>
+              </div>
+            </div>
+          </div>
+
           <!-- Jobber Integration -->
           <div class="service-section" style="border-top:2px solid var(--accent);margin-top:20px;padding-top:16px">
             <div class="service-header">

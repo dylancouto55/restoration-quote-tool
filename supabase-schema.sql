@@ -137,6 +137,12 @@ INSERT INTO settings (key, value) VALUES
         "min_price": 100,
         "rates": { "light": 0.18, "standard": 0.25, "heavy": 0.35 }
       },
+      "christmas_lights": {
+        "enabled": true,
+        "name": "Christmas Lights",
+        "min_price": 600,
+        "rates": { "roofline": 7, "tree": 100, "bush": 35, "wreath": 60 }
+      },
       "roof": {
         "enabled": true,
         "name": "Roof Wash",
@@ -190,6 +196,7 @@ ON CONFLICT (key) DO NOTHING;
 --     || '{"patio":{"enabled":true,"name":"Patio","min_price":125,"rates":{"light":0.20,"standard":0.28,"heavy":0.40}}}'::jsonb
 --     || '{"pavers":{"enabled":true,"name":"Paver Patio / Walk","min_price":150,"rates":{"light":0.25,"standard":0.35,"heavy":0.50}}}'::jsonb
 --     || '{"walkway":{"enabled":true,"name":"Walkway / Sidewalk","min_price":100,"rates":{"light":0.18,"standard":0.25,"heavy":0.35}}}'::jsonb
+--     || '{"christmas_lights":{"enabled":true,"name":"Christmas Lights","min_price":600,"rates":{"roofline":7,"tree":100,"bush":35,"wreath":60}}}'::jsonb
 -- ) WHERE key = 'config';
 --
 -- Alternatively: after deploying, open the admin Settings tab and click

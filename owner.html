@@ -250,6 +250,17 @@
           <div class="field"><label for="guard_lnft">Linear Footage</label><div class="input-wrap has-suffix"><input type="number" id="guard_lnft" value="120" min="0" step="10" /><span class="suffix">ln ft</span></div></div>
           <div class="field"><label>Guard Type</label><div class="preset-row" data-service="gutter_guards"><button type="button" class="preset" data-level="mesh">Mesh Screen</button><button type="button" class="preset active" data-level="micro_mesh">Micro-Mesh</button><button type="button" class="preset" data-level="solid">Solid Cover</button></div></div>
         </div>
+
+        <!-- Christmas Lights -->
+        <div class="service-detail" id="detail-christmas_lights">
+          <h3>Christmas Lights</h3>
+          <div class="field"><label for="xmas_lnft">Roofline Linear Footage</label><div class="input-wrap has-suffix"><input type="number" id="xmas_lnft" value="100" min="0" step="10" /><span class="suffix">ln ft</span></div></div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+            <div class="field"><label for="xmas_trees">Trees</label><input type="number" id="xmas_trees" value="0" min="0" step="1" /></div>
+            <div class="field"><label for="xmas_bushes">Bushes</label><input type="number" id="xmas_bushes" value="0" min="0" step="1" /></div>
+            <div class="field"><label for="xmas_wreaths">Wreaths</label><input type="number" id="xmas_wreaths" value="0" min="0" step="1" /></div>
+          </div>
+        </div>
       </div>
 
       <!-- Quote Results -->
@@ -376,6 +387,16 @@
         <div class="rate-row"><label>Solid Rate</label><input type="number" id="rate_gg_solid" value="12" step="0.5" style="width:80px;" /><span class="unit">$/lf</span></div>
       </div>
 
+      <!-- Christmas Lights Rates -->
+      <div class="settings-section" id="settings-christmas_lights">
+        <h3>Christmas Lights</h3>
+        <div class="rate-row"><label>Min Price</label><input type="number" id="rate_xl_min" value="600" step="25" style="width:80px;" /><span class="unit">$</span></div>
+        <div class="rate-row"><label>Roofline Rate</label><input type="number" id="rate_xl_roofline" value="7" step="0.5" style="width:80px;" /><span class="unit">$/lf</span></div>
+        <div class="rate-row"><label>Per Tree</label><input type="number" id="rate_xl_tree" value="100" step="5" style="width:80px;" /><span class="unit">$</span></div>
+        <div class="rate-row"><label>Per Bush</label><input type="number" id="rate_xl_bush" value="35" step="5" style="width:80px;" /><span class="unit">$</span></div>
+        <div class="rate-row"><label>Per Wreath</label><input type="number" id="rate_xl_wreath" value="60" step="5" style="width:80px;" /><span class="unit">$</span></div>
+      </div>
+
     </div>
   </div>
 </div>
@@ -419,6 +440,12 @@ async function loadConfig() {
     CONFIG = getDefaults();
     SAVED_CONFIG = JSON.parse(JSON.stringify(CONFIG));
   }
+  // A service added in code but not yet saved in the DB config still needs rates.
+  const defs = getDefaults().services;
+  Object.keys(defs).forEach(k => {
+    if (!CONFIG.services[k]) CONFIG.services[k] = JSON.parse(JSON.stringify(defs[k]));
+    if (!SAVED_CONFIG.services[k]) SAVED_CONFIG.services[k] = JSON.parse(JSON.stringify(defs[k]));
+  });
   populateSettingsPanel();
 }
 
@@ -432,7 +459,8 @@ function getDefaults() {
       gutters: { enabled: true, min_price: 150, rates: { cleaning: 1.75, brightening: 2.50, both: 3.75 } },
       junk: { enabled: true, tiers: { single:{low:75,high:150}, quarter:{low:150,high:250}, half:{low:250,high:400}, threequarter:{low:400,high:550}, full:{low:550,high:750} } },
       window_cleaning: { enabled: true, min_price: 150, rates: { exterior_light:5, exterior_standard:7, exterior_heavy:10, both_light:8, both_standard:12, both_heavy:16 } },
-      gutter_guards: { enabled: true, min_price: 300, rates: { mesh: 6, micro_mesh: 9, solid: 12 } }
+      gutter_guards: { enabled: true, min_price: 300, rates: { mesh: 6, micro_mesh: 9, solid: 12 } },
+      christmas_lights: { enabled: true, min_price: 600, rates: { roofline: 7, tree: 100, bush: 35, wreath: 60 } }
     }
   };
 }
@@ -490,6 +518,12 @@ function populateSettingsPanel() {
   $('rate_gg_mesh').value = s.gutter_guards?.rates?.mesh || 6;
   $('rate_gg_micro').value = s.gutter_guards?.rates?.micro_mesh || 9;
   $('rate_gg_solid').value = s.gutter_guards?.rates?.solid || 12;
+  // Christmas lights
+  $('rate_xl_min').value = s.christmas_lights?.min_price ?? 600;
+  $('rate_xl_roofline').value = s.christmas_lights?.rates?.roofline ?? 7;
+  $('rate_xl_tree').value = s.christmas_lights?.rates?.tree ?? 100;
+  $('rate_xl_bush').value = s.christmas_lights?.rates?.bush ?? 35;
+  $('rate_xl_wreath').value = s.christmas_lights?.rates?.wreath ?? 60;
 }
 
 // ===== Read Settings Sidebar into CONFIG =====
@@ -513,6 +547,10 @@ function readSettingsPanel() {
   s.junk.tiers.threequarter = { low: +$('rate_jk_tq_low').value, high: +$('rate_jk_tq_high').value };
   s.junk.tiers.full = { low: +$('rate_jk_full_low').value, high: +$('rate_jk_full_high').value };
   s.gutter_guards.min_price = +$('rate_gg_min').value; s.gutter_guards.rates.mesh = +$('rate_gg_mesh').value; s.gutter_guards.rates.micro_mesh = +$('rate_gg_micro').value; s.gutter_guards.rates.solid = +$('rate_gg_solid').value;
+  if (!s.christmas_lights) s.christmas_lights = { enabled: true, rates: {} };
+  if (!s.christmas_lights.rates) s.christmas_lights.rates = {};
+  s.christmas_lights.min_price = +$('rate_xl_min').value; s.christmas_lights.rates.roofline = +$('rate_xl_roofline').value;
+  s.christmas_lights.rates.tree = +$('rate_xl_tree').value; s.christmas_lights.rates.bush = +$('rate_xl_bush').value; s.christmas_lights.rates.wreath = +$('rate_xl_wreath').value;
 }
 
 // Listen to all settings inputs
@@ -528,7 +566,8 @@ const services = [
   { id:'gutters', icon:'ðª£', title:'Gutters', desc:'Clean out & brightening' },
   { id:'junk', icon:'ðï¸', title:'Junk Removal', desc:'Hauling & disposal' },
   { id:'window_cleaning', icon:'ðª', title:'Windows', desc:'Interior & exterior' },
-  { id:'gutter_guards', icon:'ð¡ï¸', title:'Gutter Guards', desc:'Guard installation' }
+  { id:'gutter_guards', icon:'ð¡ï¸', title:'Gutter Guards', desc:'Guard installation' },
+  { id:'christmas_lights', icon:'🎄', title:'Christmas Lights', desc:'Roofline, trees & bushes' }
 ];
 const selectedServices = new Set();
 const serviceLevels = { house:'standard', driveway:'standard', roof:'standard', gutters:'cleaning', windows:'standard', gutter_guards:'micro_mesh' };
@@ -606,6 +645,18 @@ function priceGutterGuards(lnft, type) {
   return { low: Math.round(base * (1 - CONFIG.behavior.price_range_spread_low)), high: Math.round(base * (1 + CONFIG.behavior.price_range_spread_high)), label: 'Gutter Guards', details: lnft + ' ln ft, ' + type.replace('_','-') };
 }
 
+function priceChristmas(lnft, trees, bushes, wreaths) {
+  const svc = CONFIG.services.christmas_lights || {}; const r = svc.rates || {};
+  const num = (v, d) => (typeof v === 'number' && !isNaN(v)) ? v : d;
+  const total = lnft * num(r.roofline, 7) + trees * num(r.tree, 100) + bushes * num(r.bush, 35) + wreaths * num(r.wreath, 60);
+  const base = Math.max(total, num(svc.min_price, 600));
+  const parts = [lnft + ' ln ft roofline'];
+  if (trees) parts.push(trees + (trees === 1 ? ' tree' : ' trees'));
+  if (bushes) parts.push(bushes + (bushes === 1 ? ' bush' : ' bushes'));
+  if (wreaths) parts.push(wreaths + (wreaths === 1 ? ' wreath' : ' wreaths'));
+  return { low: Math.round(base * (1 - CONFIG.behavior.price_range_spread_low)), high: Math.round(base * (1 + CONFIG.behavior.price_range_spread_high)), label: 'Christmas Lights', details: parts.join(', ') };
+}
+
 function updateQuote() {
   const lines = []; let tLow = 0, tHigh = 0;
   if (selectedServices.has('house_wash')) { const p = priceHouse(+$('house_sqft').value||2000, +$('house_stories').value||2, serviceLevels.house); lines.push(p); tLow+=p.low; tHigh+=p.high; }
@@ -615,6 +666,7 @@ function updateQuote() {
   if (selectedServices.has('junk')) { const p = priceJunk($('junk_volume').value); lines.push(p); tLow+=p.low; tHigh+=p.high; }
   if (selectedServices.has('window_cleaning')) { const p = priceWindows(+$('window_count').value||15, $('window_type').value, serviceLevels.windows); lines.push(p); tLow+=p.low; tHigh+=p.high; }
   if (selectedServices.has('gutter_guards')) { const p = priceGutterGuards(+$('guard_lnft').value||120, serviceLevels.gutter_guards); lines.push(p); tLow+=p.low; tHigh+=p.high; }
+  if (selectedServices.has('christmas_lights')) { const c = id => Math.max(0, Math.round(+$(id).value || 0)); const p = priceChristmas(c('xmas_lnft'), c('xmas_trees'), c('xmas_bushes'), c('xmas_wreaths')); lines.push(p); tLow+=p.low; tHigh+=p.high; }
 
   const dp = CONFIG.behavior.bundle_discount_percent || 0;
   const dt = CONFIG.behavior.bundle_discount_threshold || 3;
@@ -632,7 +684,7 @@ function updateQuote() {
 }
 
 // Input listeners
-['house_sqft','house_stories','driveway_sqft','roof_sqft','gutter_lnft','junk_volume','junk_description','window_count','window_type','guard_lnft'].forEach(id => {
+['house_sqft','house_stories','driveway_sqft','roof_sqft','gutter_lnft','junk_volume','junk_description','window_count','window_type','guard_lnft','xmas_lnft','xmas_trees','xmas_bushes','xmas_wreaths'].forEach(id => {
   $(id).addEventListener('input', updateQuote);
   $(id).addEventListener('change', updateQuote);
 });
@@ -712,6 +764,7 @@ $('newQuoteBtn').addEventListener('click', () => {
   $('gutter_lnft').value = 120; $('guard_lnft').value = 120;
   $('window_count').value = 15; $('window_type').value = 'exterior';
   $('junk_volume').value = 'quarter'; $('junk_description').value = '';
+  $('xmas_lnft').value = 100; $('xmas_trees').value = 0; $('xmas_bushes').value = 0; $('xmas_wreaths').value = 0;
   $('jobNotes').value = '';
   // Reset presets
   document.querySelectorAll('.preset-row').forEach(row => {

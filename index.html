@@ -131,6 +131,7 @@
   }
   .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   @media (max-width: 480px) { .row-2 { grid-template-columns: 1fr; } }
+  .row-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
 
   /* Lookup row */
   .lookup-row { display: flex; gap: 8px; }
@@ -750,6 +751,38 @@
         </div>
       </div>
     </div>
+
+    <div class="service-detail" id="detail-christmas_lights">
+      <h3>Christmas Lights Details</h3>
+      <div class="field">
+        <label for="xmas_lnft">Roofline to Light</label>
+        <div class="input-wrap has-suffix">
+          <input type="number" id="xmas_lnft" value="100" min="0" step="10" />
+          <span class="suffix">ln ft</span>
+        </div>
+        <div class="hint">The length of roofline you want lit. Don't know it? Trace it on a satellite map.</div>
+        <div class="measure-row">
+          <button type="button" class="measure-btn" data-measure="christmas_lights" data-mode="line" data-input="xmas_lnft" data-label="Christmas Lights" data-noun="roofline">📐 Measure with SplashQuote</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Add-ons (optional)</label>
+        <div class="row-3">
+          <div>
+            <label for="xmas_trees">Trees</label>
+            <input type="number" id="xmas_trees" value="0" min="0" step="1" />
+          </div>
+          <div>
+            <label for="xmas_bushes">Bushes</label>
+            <input type="number" id="xmas_bushes" value="0" min="0" step="1" />
+          </div>
+          <div>
+            <label for="xmas_wreaths">Wreaths</label>
+            <input type="number" id="xmas_wreaths" value="0" min="0" step="1" />
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Estimated Quote Display -->
@@ -899,6 +932,12 @@
         enabled: true,
         min_price: 300,
         rates: { mesh: 6, micro_mesh: 9, solid: 12 }
+      },
+      christmas_lights: {
+        enabled: true,
+        name: 'Christmas Lights',
+        min_price: 600,
+        rates: { roofline: 7, tree: 100, bush: 35, wreath: 60 }
       }
     }
   };
@@ -939,7 +978,8 @@
     { id: 'gutters',    icon: '🪣', title: 'Gutters',    desc: 'Clean out and exterior brightening' },
     { id: 'junk',       icon: '🗑️', title: 'Junk Removal', desc: 'Hauling and disposal' },
         { id: 'window_cleaning', icon: '🪟', title: 'Window Cleaning', desc: 'Interior and exterior window washing' },
-        { id: 'gutter_guards',    icon: '🛡️', title: 'Gutter Guards',   desc: 'Guard installation to prevent clogs' }
+        { id: 'gutter_guards',    icon: '🛡️', title: 'Gutter Guards',   desc: 'Guard installation to prevent clogs' },
+    { id: 'christmas_lights', icon: '🎄', title: 'Christmas Lights', desc: 'Roofline, trees and bushes' }
   ];
 
   const selectedServices = new Set();
@@ -1045,6 +1085,27 @@
       high: Math.round(base * (1 + CONFIG.behavior.price_range_spread_high)),
       label: 'Gutter Guards',
       details: lnft + ' ln ft, ' + type.replace('_', '-')
+    };
+  }
+
+  // Christmas lights: roofline per linear foot plus per-item add-ons. The
+  // minimum applies to the whole lighting job, add-ons included.
+  function priceChristmas(lnft, trees, bushes, wreaths) {
+    const svc = CONFIG.services.christmas_lights || {};
+    const r = svc.rates || {};
+    const num = (v, d) => (typeof v === 'number' && !isNaN(v)) ? v : d;
+    const total = lnft * num(r.roofline, 7) + trees * num(r.tree, 100)
+                + bushes * num(r.bush, 35) + wreaths * num(r.wreath, 60);
+    const base = Math.max(total, num(svc.min_price, 600));
+    const parts = [lnft.toLocaleString() + ' ln ft roofline'];
+    if (trees) parts.push(trees + (trees === 1 ? ' tree' : ' trees'));
+    if (bushes) parts.push(bushes + (bushes === 1 ? ' bush' : ' bushes'));
+    if (wreaths) parts.push(wreaths + (wreaths === 1 ? ' wreath' : ' wreaths'));
+    return {
+      low: Math.round(base * (1 - CONFIG.behavior.price_range_spread_low)),
+      high: Math.round(base * (1 + CONFIG.behavior.price_range_spread_high)),
+      label: svc.name || 'Christmas Lights',
+      details: parts.join(', ')
     };
   }
 
@@ -1223,6 +1284,24 @@
       });
     }
 
+    if (selectedServices.has('christmas_lights')) {
+      const count = (id) => Math.max(0, Math.round(+$(id).value || 0));
+      const lnft = count('xmas_lnft'), trees = count('xmas_trees');
+      const bushes = count('xmas_bushes'), wreaths = count('xmas_wreaths');
+      const p = priceChristmas(lnft, trees, bushes, wreaths);
+      lines.push(p);
+      totalLow += p.low;
+      totalHigh += p.high;
+      const provX = measured['christmas_lights'] || {};
+      servicesData.push({
+        type: 'christmas_lights', name: p.label, details: p.details,
+        lnft: lnft, trees: trees, bushes: bushes, wreaths: wreaths,
+        measured: !!provX.measured, source: provX.measured ? 'map' : 'manual',
+        polygon: provX.polygon || null,
+        price_low: p.low, price_high: p.high
+      });
+    }
+
     // Multi-service discount based on config
     const discountPct = CONFIG.behavior.bundle_discount_percent || 0;
     const threshold = CONFIG.behavior.bundle_discount_threshold || 3;
@@ -1285,7 +1364,7 @@
   }
 
   // Listen to all input changes
-  ['house_sqft', 'driveway_sqft', 'patio_sqft', 'pavers_sqft', 'walkway_sqft', 'roof_sqft', 'gutter_lnft', 'junk_volume', 'junk_description', 'window_count', 'window_type', 'guard_lnft']
+  ['house_sqft', 'driveway_sqft', 'patio_sqft', 'pavers_sqft', 'walkway_sqft', 'roof_sqft', 'gutter_lnft', 'junk_volume', 'junk_description', 'window_count', 'window_type', 'guard_lnft', 'xmas_lnft', 'xmas_trees', 'xmas_bushes', 'xmas_wreaths']
     .forEach(id => {
       $(id).addEventListener('input', updateQuote);
       $(id).addEventListener('change', updateQuote);
@@ -1307,7 +1386,7 @@
   const MEASURE_INPUTS = {
     house_sqft: 'house_wash', driveway_sqft: 'driveway', patio_sqft: 'patio',
     pavers_sqft: 'pavers', walkway_sqft: 'walkway', roof_sqft: 'roof', gutter_lnft: 'gutters',
-    guard_lnft: 'gutter_guards'
+    guard_lnft: 'gutter_guards', xmas_lnft: 'christmas_lights'
   };
   Object.entries(MEASURE_INPUTS).forEach(([inputId, svc]) => {
     $(inputId).addEventListener('input', () => { delete measured[svc]; });
@@ -1620,13 +1699,15 @@ updateQuote();
 
   function openMeasure(opts) {
     const label = opts.label || opts.service;
+    const noun = opts.noun || 'gutter';
     $('measureTitle').textContent = '💦 SplashQuote';
     $('measureHint').textContent =
       opts.mode === 'house' ? 'Trace the outline of your house — tap each corner of the roof edges, then close the loop.'
-      : opts.mode === 'line' ? 'Tap along a gutter from one end to the other. Gutters on another side of the house? Tap "Add another gutter run" and trace that one too — the footage adds up.'
+      : opts.mode === 'line' ? 'Tap along the ' + noun + ' from one end to the other. More on another side of the house? Tap "Add another ' + noun + ' run" and trace that one too — the footage adds up.'
       : 'Tap each corner of the ' + label.toLowerCase() + '. Tap the first (green) dot — or "Use this area" — to finish.';
     $('measureApplyBtn').textContent = opts.mode === 'line' ? 'Use this length' : 'Use this area';
     $('measureNewRunBtn').style.display = opts.mode === 'line' ? '' : 'none';
+    $('measureNewRunBtn').textContent = '➕ Add another ' + noun + ' run';
     $('measureReadout').textContent = 'Loading satellite map…';
     $('formContainer').style.display = 'none';
     $('measurePanel').classList.add('show');
@@ -1832,7 +1913,7 @@ updateQuote();
       const runs = measureCtx.runs.length;
       const total = measureLineTotalFt();
       if (n < 2 && runs === 0) {
-        el.textContent = 'Tap the start of the gutter, then along it · ' + n + (n === 1 ? ' point' : ' points');
+        el.textContent = 'Tap the start of the ' + (measureCtx.noun || 'gutter') + ', then along it · ' + n + (n === 1 ? ' point' : ' points');
       } else if (runs === 0) {
         el.textContent = '≈ ' + fmtNum(total) + ' ln ft · ' + n + ' points';
       } else {
@@ -1880,7 +1961,7 @@ updateQuote();
 
     let value, provenance, checkVal;
     if (mode === 'line') {
-      if (n < 2 && measureCtx.runs.length === 0) { alert('Tap at least 2 points along the gutter first.'); return; }
+      if (n < 2 && measureCtx.runs.length === 0) { alert('Tap at least 2 points along the ' + (measureCtx.noun || 'gutter') + ' first.'); return; }
       value = Math.round(measureLineTotalFt());   // open lines: traced length(s) added up
       checkVal = value;
       provenance = { measured: true, source: 'map', lnft: value, runs: measureCtx.runs.length + (n >= 2 ? 1 : 0), polygon: pathToArray() };
@@ -1955,7 +2036,8 @@ updateQuote();
       service: b.dataset.measure,
       mode: b.dataset.mode || 'area',
       inputId: b.dataset.input,
-      label: b.dataset.label || b.dataset.measure
+      label: b.dataset.label || b.dataset.measure,
+      noun: b.dataset.noun || 'gutter'
     });
   });
 
